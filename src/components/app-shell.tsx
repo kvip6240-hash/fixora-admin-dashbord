@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, useEffect, type ReactNode } from "react";
+import { Toaster } from "sonner";
 import {
   LayoutDashboard,
   FileText,
@@ -74,6 +75,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen flex w-full bg-background">
+      <Toaster position="top-right" richColors closeButton />
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="h-16 flex items-center gap-2.5 px-5 border-b border-sidebar-border">
