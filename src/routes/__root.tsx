@@ -4,14 +4,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
   useNavigate,
   useLocation,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect } from "react";
 
-import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -79,46 +76,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Operations Control Center — Quotalink" },
-      { name: "description", content: "Real-time RFQ marketplace operations, quotations, awards and payments for UK enterprise buyers." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Operations Control Center — Quotalink" },
-      { property: "og:description", content: "Real-time RFQ marketplace operations, quotations, awards and payments for UK enterprise buyers." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Operations Control Center — Quotalink" },
-      { name: "twitter:description", content: "Real-time RFQ marketplace operations, quotations, awards and payments for UK enterprise buyers." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b975f313-5b4c-4000-ac64-8cf21b1d0c49/id-preview-29652422--990f7333-fe5f-4fd4-86d7-4705992ede7b.lovable.app-1784709192423.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b975f313-5b4c-4000-ac64-8cf21b1d0c49/id-preview-29652422--990f7333-fe5f-4fd4-86d7-4705992ede7b.lovable.app-1784709192423.png" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { title: "Fixora Admin Dashboard" },
+      { name: "description", content: "Fixora Admin — platform operations and management." },
     ],
   }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-function RootShell({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

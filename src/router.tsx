@@ -1,16 +1,3 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createRouter } from "@tanstack/react-router";
-import { routeTree } from "./routeTree.gen";
-
-export const getRouter = () => {
-  const queryClient = new QueryClient();
-
-  const router = createRouter({
-    routeTree,
-    context: { queryClient },
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-  });
-
-  return router;
-};
+// This file is kept for reference only.
+// The router is now created and provided in src/main.tsx.
+// This file is NOT used by the application.
