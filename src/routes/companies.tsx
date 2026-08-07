@@ -10,7 +10,10 @@ export const Route = createFileRoute("/companies")({
       { title: "Companies — Fixora Admin" },
       { name: "description", content: "Manage companies registered on the Fixora platform." },
       { property: "og:title", content: "Companies — Fixora Admin" },
-      { property: "og:description", content: "Manage companies registered on the Fixora platform." },
+      {
+        property: "og:description",
+        content: "Manage companies registered on the Fixora platform.",
+      },
     ],
   }),
   component: Companies,
@@ -65,10 +68,7 @@ function Companies() {
       <Card className="mt-6">
         {/* Toolbar */}
         <div className="p-5 pb-3 flex flex-wrap items-center gap-3">
-          <SectionHeader
-            title="All Companies"
-            hint="Search, filter and manage company status"
-          />
+          <SectionHeader title="All Companies" hint="Search, filter and manage company status" />
           {/* Search */}
           <div className="ml-auto relative min-w-[220px]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -133,12 +133,8 @@ function Companies() {
                         <span className="font-medium">{String(c.name ?? "—")}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-muted-foreground">
-                      {String(c.email ?? "—")}
-                    </td>
-                    <td className="px-3 py-3 text-muted-foreground">
-                      {String(c.phone ?? "—")}
-                    </td>
+                    <td className="px-3 py-3 text-muted-foreground">{String(c.email ?? "—")}</td>
+                    <td className="px-3 py-3 text-muted-foreground">{String(c.phone ?? "—")}</td>
                     <td className="px-3 py-3">
                       <Pill tone={c.isActive ? "success" : "destructive"}>
                         {c.isActive ? "Active" : "Inactive"}
@@ -170,9 +166,7 @@ function Companies() {
         {/* Pagination */}
         <div className="px-5 py-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
           <span>
-            {isLoading
-              ? "Loading…"
-              : `Page ${page} of ${totalPages} · ${total} companies`}
+            {isLoading ? "Loading…" : `Page ${page} of ${totalPages} · ${total} companies`}
           </span>
           <div className="flex items-center gap-1">
             <Button

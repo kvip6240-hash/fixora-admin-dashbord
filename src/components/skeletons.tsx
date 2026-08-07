@@ -46,9 +46,7 @@ export function SkeletonCard() {
       </div>
       {pulse("mt-2 h-4 w-full rounded")}
       {pulse("mt-1 h-3 w-3/4 rounded")}
-      <div className="mt-3">
-        {pulse("h-1.5 w-full rounded-full")}
-      </div>
+      <div className="mt-3">{pulse("h-1.5 w-full rounded-full")}</div>
     </div>
   );
 }

@@ -57,24 +57,30 @@ export function useProjectsController() {
   }, []);
 
   /** Fetch full detail for one project request */
-  const openDetail = useCallback(async (id: string) => {
-    setDetailLoading(true);
-    try {
-      // Check React Query cache first
-      const cached = queryClient.getQueryData<ProjectRequest>(["project-request", id]);
-      if (cached) {
-        setSelectedProject(cached);
-        return;
+  const openDetail = useCallback(
+    async (id: string, fallbackProject?: ProjectRequest) => {
+      setDetailLoading(true);
+      try {
+        // Check React Query cache first
+        const cached = queryClient.getQueryData<ProjectRequest>(["project-request", id]);
+        if (cached) {
+          setSelectedProject(cached);
+          return;
+        }
+        const res = await fetchProjectRequestById(id);
+        const detail = (res as any)?.data ?? (res as any)?.project ?? res;
+        queryClient.setQueryData(["project-request", id], detail);
+        setSelectedProject(detail);
+      } catch {
+        if (fallbackProject) {
+          setSelectedProject(fallbackProject);
+        }
+      } finally {
+        setDetailLoading(false);
       }
-      const detail = await fetchProjectRequestById(id);
-      queryClient.setQueryData(["project-request", id], detail);
-      setSelectedProject(detail);
-    } catch {
-      // toast shown in api.ts
-    } finally {
-      setDetailLoading(false);
-    }
-  }, [queryClient]);
+    },
+    [queryClient],
+  );
 
   const closeDetail = useCallback(() => setSelectedProject(null), []);
 

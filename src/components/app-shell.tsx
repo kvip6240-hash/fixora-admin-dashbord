@@ -4,9 +4,6 @@ import { Toaster } from "sonner";
 import {
   LayoutDashboard,
   FileText,
-  Radio,
-  ClipboardList,
-  Award,
   Briefcase,
   Wallet,
   Building2,
@@ -26,9 +23,6 @@ const nav: Array<{
 }> = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard, exact: true },
   { label: "RFQ Management", to: "/rfq", icon: FileText },
-  { label: "Broadcast Center", to: "/broadcast", icon: Radio },
-  { label: "Quotation Management", to: "/quotations", icon: ClipboardList },
-  { label: "Award Management", to: "/awards", icon: Award },
   { label: "Projects", to: "/projects", icon: Briefcase },
   { label: "Payments", to: "/payments", icon: Wallet },
   { label: "Companies", to: "/companies", icon: Building2 },
@@ -145,7 +139,9 @@ export function AppShell({
               </div>
               <div className="hidden md:block leading-tight text-left">
                 <div className="text-xs font-medium">{user ? user.name : "Admin User"}</div>
-                <div className="text-[10px] text-muted-foreground">{user ? user.role.replace("_", " ") : "Ops Manager · UK"}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {user ? user.role.replace("_", " ") : "Ops Manager · UK"}
+                </div>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
@@ -166,9 +162,7 @@ export function AppShell({
         <div className="px-8 pt-8 pb-4 flex items-start gap-4 flex-wrap">
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-            )}
+            {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
           </div>
           {actions && <div className="flex items-center gap-2">{actions}</div>}
         </div>
@@ -180,18 +174,10 @@ export function AppShell({
 }
 
 // Shared primitives
-export function Card({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={
-        "rounded-xl bg-card border border-border shadow-[var(--shadow-card)] " + className
-      }
+      className={"rounded-xl bg-card border border-border shadow-[var(--shadow-card)] " + className}
     >
       {children}
     </div>
@@ -229,13 +215,7 @@ const toneClass: Record<Tone, string> = {
   success: "bg-[oklch(0.94_0.08_155)] text-[oklch(0.38_0.12_155)]",
 };
 
-export function Pill({
-  children,
-  tone = "muted",
-}: {
-  children: ReactNode;
-  tone?: Tone;
-}) {
+export function Pill({ children, tone = "muted" }: { children: ReactNode; tone?: Tone }) {
   return (
     <span
       className={

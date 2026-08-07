@@ -21,6 +21,10 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RfqRouteImport } from './routes/rfq'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminServiceProvidersRouteImport } from './routes/admin.service-providers'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminBookingsBookingIdRouteImport } from './routes/admin.bookings.$bookingId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +86,26 @@ const SupportRoute = SupportRouteImport.update({
   path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/admin/categories',
+  path: '/admin/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminServiceProvidersRoute = AdminServiceProvidersRouteImport.update({
+  id: '/admin/service-providers',
+  path: '/admin/service-providers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBookingsBookingIdRoute = AdminBookingsBookingIdRouteImport.update({
+  id: '/admin/bookings/$bookingId',
+  path: '/admin/bookings/$bookingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +120,10 @@ export interface FileRoutesByFullPath {
   '/rfq': typeof RfqRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/service-providers': typeof AdminServiceProvidersRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/bookings/$bookingId': typeof AdminBookingsBookingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +138,10 @@ export interface FileRoutesByTo {
   '/rfq': typeof RfqRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/service-providers': typeof AdminServiceProvidersRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/bookings/$bookingId': typeof AdminBookingsBookingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +157,10 @@ export interface FileRoutesById {
   '/rfq': typeof RfqRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/service-providers': typeof AdminServiceProvidersRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/bookings/$bookingId': typeof AdminBookingsBookingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +177,10 @@ export interface FileRouteTypes {
     | '/rfq'
     | '/settings'
     | '/support'
+    | '/admin/categories'
+    | '/admin/service-providers'
+    | '/admin/users'
+    | '/admin/bookings/$bookingId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +195,10 @@ export interface FileRouteTypes {
     | '/rfq'
     | '/settings'
     | '/support'
+    | '/admin/categories'
+    | '/admin/service-providers'
+    | '/admin/users'
+    | '/admin/bookings/$bookingId'
   id:
     | '__root__'
     | '/'
@@ -169,6 +213,10 @@ export interface FileRouteTypes {
     | '/rfq'
     | '/settings'
     | '/support'
+    | '/admin/categories'
+    | '/admin/service-providers'
+    | '/admin/users'
+    | '/admin/bookings/$bookingId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +232,10 @@ export interface RootRouteChildren {
   RfqRoute: typeof RfqRoute
   SettingsRoute: typeof SettingsRoute
   SupportRoute: typeof SupportRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminServiceProvidersRoute: typeof AdminServiceProvidersRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminBookingsBookingIdRoute: typeof AdminBookingsBookingIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -272,6 +324,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/admin/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/service-providers': {
+      id: '/admin/service-providers'
+      path: '/admin/service-providers'
+      fullPath: '/admin/service-providers'
+      preLoaderRoute: typeof AdminServiceProvidersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/bookings/$bookingId': {
+      id: '/admin/bookings/$bookingId'
+      path: '/admin/bookings/$bookingId'
+      fullPath: '/admin/bookings/$bookingId'
+      preLoaderRoute: typeof AdminBookingsBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -288,6 +368,10 @@ const rootRouteChildren: RootRouteChildren = {
   RfqRoute: RfqRoute,
   SettingsRoute: SettingsRoute,
   SupportRoute: SupportRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminServiceProvidersRoute: AdminServiceProvidersRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminBookingsBookingIdRoute: AdminBookingsBookingIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

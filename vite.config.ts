@@ -20,6 +20,25 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/recharts") || id.includes("node_modules/d3-")) {
+            return "vendor-recharts";
+          }
+          if (id.includes("node_modules/@tanstack/react-router") || id.includes("node_modules/@tanstack/react-query")) {
+            return "vendor-tanstack";
+          }
+          if (id.includes("node_modules/@radix-ui/")) {
+            return "vendor-radix";
+          }
+          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
+            return "vendor-react";
+          }
+        },
+      },
+    },
   },
   server: {
     port: 5173,

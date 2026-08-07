@@ -56,9 +56,7 @@ export function useCompaniesController() {
       setTogglingId(company._id);
       try {
         await updateCompanyStatus(company._id, newStatus);
-        toast.success(
-          `${company.name} has been ${newStatus ? "activated" : "deactivated"}.`,
-        );
+        toast.success(`${company.name} has been ${newStatus ? "activated" : "deactivated"}.`);
         // Invalidate cache so list refreshes
         queryClient.invalidateQueries({ queryKey: ["companies"] });
       } catch {
