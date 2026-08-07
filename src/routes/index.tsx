@@ -12,12 +12,18 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUsersCount, fetchServiceProvidersCount, fetchCategoriesCount, fetchRecentBookings } from "@/lib/api";
+import {
+  fetchUsersCount,
+  fetchServiceProvidersCount,
+  fetchCategoriesCount,
+  fetchProjectRequests,
+  type ProjectRequest,
+} from "@/lib/api";
 import { useMemo } from "react";
 import { SummaryCard } from "@/components/dashboard/SummaryCard";
 import { RecentBookingsTable } from "@/components/dashboard/RecentBookingsTable";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/")(({
   head: () => ({
     meta: [
       { title: "Enterprise Dashboard — Fixora Admin" },
@@ -25,30 +31,12 @@ export const Route = createFileRoute("/")({
     ],
   }),
   component: Dashboard,
-});
-
-const _mockReviews = [
-  {
-    id: "rev-1",
-    user: "Robert Lang",
-    provider: "Fixora Plumbing Pros",
-    rating: 5,
-    comment: "Arrived in 20 minutes and fixed the leak perfectly. Excellent service!",
-    time: "30m ago",
-  },
-  {
-    id: "rev-2",
-    user: "Clara Oswald",
-    provider: "BrightLine Electrical",
-    rating: 4.8,
-    comment: "Punctual, professional, and left the work area completely clean.",
-    time: "3h ago",
-  },
-];
+} as any));
 
 function Dashboard() {
   const navigate = useNavigate();
 
+  // ── Stat counts ──
   const { data: usersCountData, isLoading: usersLoading } = useQuery({
     queryKey: ["users-count-stat"],
     queryFn: fetchUsersCount,
@@ -67,12 +55,28 @@ function Dashboard() {
     staleTime: 30_000,
   });
 
-  const { data: recentBookingsData } = useQuery({
-    queryKey: ["recent-bookings-list"],
-    queryFn: fetchRecentBookings,
-    staleTime: 30_000,
+  // ── Recent project requests (newest first, limit 10) ──
+  const {
+    data: recentRequestsData,
+    isLoading: requestsLoading,
+    refetch: refetchRequests,
+  } = useQuery({
+    queryKey: ["recent-project-requests"],
+    queryFn: () => fetchProjectRequests({ page: 1, limit: 10, sort: "-createdAt" }),
+    staleTime: 20_000,
   });
 
+  // Sort newest first client-side as safety net
+  const recentBookings: ProjectRequest[] = useMemo(() => {
+    const items = recentRequestsData?.data ?? [];
+    return [...items].sort((a, b) => {
+      const da = new Date((a as any).createdAt || (a as any).submittedAt || 0).getTime();
+      const db = new Date((b as any).createdAt || (b as any).submittedAt || 0).getTime();
+      return db - da;
+    });
+  }, [recentRequestsData]);
+
+  // ── Summary cards ──
   const summaryCards = useMemo(() => {
     const totalUsers = usersLoading ? "..." : (usersCountData?.count ?? 0).toLocaleString();
     const totalProviders = providersLoading ? "..." : (providersCountData?.count ?? 0).toLocaleString();
@@ -149,7 +153,12 @@ function Dashboard() {
             <Filter className="w-3.5 h-3.5" />
             Filter
           </Button>
-          <Button variant="outline" size="sm" className="bg-white">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white"
+            onClick={() => refetchRequests()}
+          >
             <RefreshCw className="w-3.5 h-3.5" />
             Sync
           </Button>
@@ -161,19 +170,23 @@ function Dashboard() {
       }
     >
       <div className="space-y-8">
-        {/* SECTION 1: TOP 8 SUMMARY CARDS */}
+        {/* SECTION 1: TOP SUMMARY CARDS */}
         <div className="grid grid-cols-1 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 gap-4">
           {summaryCards.map((card) => (
             <SummaryCard key={card.title} {...card} />
           ))}
         </div>
 
-        {/* SECTION 2: RECENT BOOKINGS — FULL WIDTH */}
+        {/* SECTION 2: RECENT BOOKINGS — navigates to booking detail page on click */}
         <RecentBookingsTable
-          bookings={recentBookingsData?.data ?? []}
-          onView={(b) => navigate({ to: `/admin/bookings/${b._id}` })}
+          bookings={recentBookings}
+          isLoading={requestsLoading}
+          onView={(project) => {
+            const id = String((project as any)._id || (project as any).id);
+            navigate({ to: `/admin/bookings/${id}` });
+          }}
+          onViewAll={() => navigate({ to: "/projects" })}
         />
-
       </div>
     </AppShell>
   );
