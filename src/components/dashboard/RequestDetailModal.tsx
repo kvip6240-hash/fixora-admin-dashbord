@@ -29,7 +29,7 @@ import { Button } from "@/components/app-shell";
 import {
   fetchProjectRequestById,
   prepareProjectQuotation,
-  updateBookingDetails,
+  publishProjectJob,
   type ProjectRequest,
   type PrepareQuotationPayload,
 } from "@/lib/api";
@@ -424,9 +424,14 @@ export function RequestDetailModal({
   };
 
   const publishMutation = useMutation({
-    mutationFn: () => updateBookingDetails(projectId, { status: "Published" }),
-    onSuccess: () => {
-      toast.success("Job has been published successfully.");
+    mutationFn: () => publishProjectJob(projectId),
+    onSuccess: (res) => {
+      toast.success(res.message || "Job has been published successfully.");
+      queryClient.setQueryData(["project-request", projectId], (old: any) => {
+        if (!old) return old;
+        const merged = { ...(old?.data ?? old), ...res.project };
+        return old?.data ? { ...old, data: merged } : merged;
+      });
       queryClient.invalidateQueries({ queryKey: ["project-requests"] });
       queryClient.invalidateQueries({ queryKey: ["project-request", projectId] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });

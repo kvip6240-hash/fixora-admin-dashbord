@@ -29,7 +29,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useProjectsController } from "../hooks/useProjectsController";
-import { prepareProjectQuotation, updateBookingDetails, fetchProjectRequestById, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
+import { prepareProjectQuotation, publishProjectJob, fetchProjectRequestById, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
 import {
   Table,
   TableHeader,
@@ -628,9 +628,14 @@ function DetailModal({
 
   // Mutation to transition status to "Published"
   const publishMutation = useMutation({
-    mutationFn: () => updateBookingDetails(projectId, { status: "Published" }),
-    onSuccess: () => {
-      toast.success("Job has been published successfully.");
+    mutationFn: () => publishProjectJob(projectId),
+    onSuccess: (res) => {
+      toast.success(res.message || "Job has been published successfully.");
+      queryClient.setQueryData(["project-request", projectId], (old: any) => {
+        if (!old) return old;
+        const merged = { ...(old?.data ?? old), ...res.project };
+        return old?.data ? { ...old, data: merged } : merged;
+      });
       queryClient.invalidateQueries({ queryKey: ["project-requests"] });
       queryClient.invalidateQueries({ queryKey: ["project-request", projectId] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });

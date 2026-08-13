@@ -73,6 +73,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       case 404:
         toast.error("The requested resource was not found.");
         break;
+      case 409:
+        toast.error(message);
+        break;
       case 500:
       default:
         toast.error("Server error. Please try again later.");
@@ -200,6 +203,26 @@ export async function fetchProjectRequests(params?: {
 /** GET /api/admin/project-requests/:id */
 export async function fetchProjectRequestById(id: string): Promise<ProjectRequest> {
   return request<ProjectRequest>(`/api/admin/project-requests/${id}`);
+}
+
+export interface PublishJobResult {
+  status: string;
+  workflowStatus: string;
+  isPublished: boolean;
+  [key: string]: unknown;
+}
+
+export interface PublishJobResponse {
+  success: boolean;
+  message: string;
+  project: PublishJobResult;
+}
+
+/** POST /api/admin/projects/:projectId/publish */
+export async function publishProjectJob(projectId: string): Promise<PublishJobResponse> {
+  return request<PublishJobResponse>(`/api/admin/projects/${projectId}/publish`, {
+    method: "POST",
+  });
 }
 
 export interface PrepareQuotationPayload {

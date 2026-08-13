@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell, Button, Card, SectionHeader } from "@/components/app-shell";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, type PrepareQuotationPayload } from "@/lib/api";
+import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, publishProjectJob, type PrepareQuotationPayload } from "@/lib/api";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -17,6 +17,7 @@ import {
   Loader2,
   FileCheck,
   CheckCircle,
+  CheckCircle2,
   XCircle,
   AlertCircle
 } from "lucide-react";
@@ -443,6 +444,24 @@ function BookingDetailsPage() {
     },
   });
 
+  const publishMutation = useMutation({
+    mutationFn: () => publishProjectJob(bookingId),
+    onSuccess: (res) => {
+      toast.success(res.message || "Job has been published successfully.");
+      queryClient.setQueryData(["booking-details", bookingId], (old: any) => {
+        if (!old) return old;
+        return { ...old, data: { ...old.data, ...res.project } };
+      });
+      queryClient.invalidateQueries({ queryKey: ["booking-details", bookingId] });
+      queryClient.invalidateQueries({ queryKey: ["project-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to publish job.");
+    },
+  });
+
   const booking = bookingData?.data;
 
   if (isLoading) {
@@ -766,13 +785,34 @@ function BookingDetailsPage() {
         >
           Reject Request
         </Button>
-        <Button
-          className="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-lg shadow-sm flex items-center gap-2 transition-colors text-sm"
-          onClick={() => setIsPrepareRFQModalOpen(true)}
-        >
-          <Send className="w-4 h-4" />
-          <span>Prepare Quotation</span>
-        </Button>
+        {(booking.status === "Submitted" || booking.status === "RFQ") && (
+          <Button
+            className="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-lg shadow-sm flex items-center gap-2 transition-colors text-sm"
+            onClick={() => setIsPrepareRFQModalOpen(true)}
+          >
+            <Send className="w-4 h-4" />
+            <span>Prepare Quotation</span>
+          </Button>
+        )}
+        {booking.status === "Accepted" && (
+          <Button
+            disabled={publishMutation.isPending}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-lg shadow-sm flex items-center gap-2 transition-colors text-sm"
+            onClick={() => publishMutation.mutate()}
+          >
+            {publishMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Publishing...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Publish Job</span>
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Prepare RFQ Modal */}
