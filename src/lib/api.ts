@@ -479,3 +479,145 @@ export async function updateBookingDetails(id: string, data: { status?: string; 
     body: JSON.stringify(data),
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reports & Analytics Management
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ReportsDashboardData {
+  rfqThroughput: number;
+  rfqGrowthPercentage: number;
+  quotationRate: number;
+  quotationRateGrowth: number;
+  awardConversion: number;
+  awardGrowth: number;
+  averageCommission: number;
+  commissionStatus: "Stable" | "Increasing" | "Decreasing";
+}
+
+export interface ReportsMonthlyRfq {
+  month: string;
+  count: number;
+}
+
+export interface ReportsCategoryMix {
+  category: string;
+  percentage: number;
+}
+
+export interface ReportsRegionalPerformance {
+  rank: number;
+  region: string;
+  awards: number;
+  status: "Top" | "Steady";
+}
+
+export interface ReportsFilterParams {
+  fromDate?: string;
+  toDate?: string;
+  category?: string;
+  region?: string;
+  company?: string;
+  status?: string;
+}
+
+function buildReportsQuery(params?: ReportsFilterParams): string {
+  if (!params) return "";
+  const query = new URLSearchParams();
+  if (params.fromDate) query.set("fromDate", params.fromDate);
+  if (params.toDate) query.set("toDate", params.toDate);
+  if (params.category) query.set("category", params.category);
+  if (params.region) query.set("region", params.region);
+  if (params.company) query.set("company", params.company);
+  if (params.status) query.set("status", params.status);
+  const qs = query.toString();
+  return qs ? `?${qs}` : "";
+}
+
+/** GET /api/admin/reports/dashboard */
+export async function fetchReportsDashboard(
+  params?: ReportsFilterParams
+): Promise<{ success: boolean; data: ReportsDashboardData }> {
+  return request<{ success: boolean; data: ReportsDashboardData }>(
+    `/api/admin/reports/dashboard${buildReportsQuery(params)}`
+  );
+}
+
+/** GET /api/admin/reports/monthly-rfq */
+export async function fetchReportsMonthlyRfq(
+  params?: ReportsFilterParams
+): Promise<{ success: boolean; data: ReportsMonthlyRfq[] }> {
+  return request<{ success: boolean; data: ReportsMonthlyRfq[] }>(
+    `/api/admin/reports/monthly-rfq${buildReportsQuery(params)}`
+  );
+}
+
+/** GET /api/admin/reports/category-mix */
+export async function fetchReportsCategoryMix(
+  params?: ReportsFilterParams
+): Promise<{ success: boolean; data: ReportsCategoryMix[] }> {
+  return request<{ success: boolean; data: ReportsCategoryMix[] }>(
+    `/api/admin/reports/category-mix${buildReportsQuery(params)}`
+  );
+}
+
+/** GET /api/admin/reports/regional-performance */
+export async function fetchReportsRegionalPerformance(
+  params?: ReportsFilterParams
+): Promise<{ success: boolean; data: ReportsRegionalPerformance[] }> {
+  return request<{ success: boolean; data: ReportsRegionalPerformance[] }>(
+    `/api/admin/reports/regional-performance${buildReportsQuery(params)}`
+  );
+}
+
+/** GET /api/admin/reports/filter */
+export async function fetchReportsFilteredCombined(
+  params?: ReportsFilterParams
+): Promise<{
+  success: boolean;
+  data: {
+    summary: ReportsDashboardData;
+    monthlyRfq: ReportsMonthlyRfq[];
+    categoryMix: ReportsCategoryMix[];
+    regionalPerformance: ReportsRegionalPerformance[];
+  };
+}> {
+  return request<{
+    success: boolean;
+    data: {
+      summary: ReportsDashboardData;
+      monthlyRfq: ReportsMonthlyRfq[];
+      categoryMix: ReportsCategoryMix[];
+      regionalPerformance: ReportsRegionalPerformance[];
+    };
+  }>(`/api/admin/reports/filter${buildReportsQuery(params)}`);
+}
+
+/** GET /api/admin/reports/export */
+export async function exportReportFile(
+  type: "excel" | "csv" | "pdf",
+  params?: ReportsFilterParams
+): Promise<Blob> {
+  const token = localStorage.getItem("fixora_token");
+  const query = new URLSearchParams();
+  query.set("type", type);
+  if (params?.fromDate) query.set("fromDate", params.fromDate);
+  if (params?.toDate) query.set("toDate", params.toDate);
+  if (params?.category) query.set("category", params.category);
+  if (params?.region) query.set("region", params.region);
+  if (params?.company) query.set("company", params.company);
+  if (params?.status) query.set("status", params.status);
+
+  const response = await fetch(`${BASE_URL}/api/admin/reports/export?${query.toString()}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to export report");
+  }
+
+  return response.blob();
+}
+

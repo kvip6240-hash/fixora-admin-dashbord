@@ -9,7 +9,9 @@ export function useDashboardController() {
   const { data, isLoading, isError, error } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
     queryFn: fetchDashboardStats,
-    staleTime: 30_000, // refresh every 30 s
+    staleTime: 0,               // always fetch fresh on focus/mount
+    refetchOnWindowFocus: true, // refresh when admin switches back to this tab
+    refetchInterval: 30_000,    // background poll every 30 s
     retry: 1,
   });
 

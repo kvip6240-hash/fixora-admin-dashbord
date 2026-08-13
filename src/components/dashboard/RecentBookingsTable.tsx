@@ -70,13 +70,14 @@ function getRequestNumber(req: ProjectRequest): string {
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  submitted: { bg: "bg-blue-50 border-blue-200", text: "text-blue-700", dot: "bg-blue-500" },
-  rfq:       { bg: "bg-purple-50 border-purple-200", text: "text-purple-700", dot: "bg-purple-500" },
-  published: { bg: "bg-amber-50 border-amber-200", text: "text-amber-700", dot: "bg-amber-500" },
-  assigned:  { bg: "bg-indigo-50 border-indigo-200", text: "text-indigo-700", dot: "bg-indigo-500" },
+  submitted: { bg: "bg-blue-50 border-blue-200",     text: "text-blue-700",    dot: "bg-blue-500" },
+  rfq:       { bg: "bg-purple-50 border-purple-200", text: "text-purple-700",  dot: "bg-purple-500" },
+  published: { bg: "bg-amber-50 border-amber-200",   text: "text-amber-700",   dot: "bg-amber-500" },
+  assigned:  { bg: "bg-indigo-50 border-indigo-200", text: "text-indigo-700",  dot: "bg-indigo-500" },
+  accepted:  { bg: "bg-teal-50 border-teal-200",     text: "text-teal-700",    dot: "bg-teal-500" },
   completed: { bg: "bg-emerald-50 border-emerald-200", text: "text-emerald-700", dot: "bg-emerald-500" },
-  cancelled: { bg: "bg-slate-100 border-slate-200", text: "text-slate-600", dot: "bg-slate-400" },
-  rejected:  { bg: "bg-red-50 border-red-200", text: "text-red-700", dot: "bg-red-500" },
+  cancelled: { bg: "bg-slate-100 border-slate-200",  text: "text-slate-600",   dot: "bg-slate-400" },
+  rejected:  { bg: "bg-red-50 border-red-200",       text: "text-red-700",     dot: "bg-red-500" },
 };
 
 function StatusPill({ status }: { status?: string }) {

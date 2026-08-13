@@ -29,6 +29,7 @@ import { Button } from "@/components/app-shell";
 import {
   fetchProjectRequestById,
   prepareProjectQuotation,
+  updateBookingDetails,
   type ProjectRequest,
   type PrepareQuotationPayload,
 } from "@/lib/api";
@@ -391,12 +392,15 @@ export function RequestDetailModal({
     queryKey: ["project-request", projectId],
     queryFn: () => fetchProjectRequestById(projectId),
     initialData: () => queryClient.getQueryData<ProjectRequest>(["project-request", projectId]),
-    staleTime: 30_000,
+    staleTime: 0,
     enabled: !!projectId,
   });
 
   const raw: any = fetched || fallbackProject;
   const project: any = unwrap(raw);
+
+  // Single source of truth status normalizer
+  const normalizedStatus = project?.status || project?.workflowStatus || project?.requestStatus || project?.quotationStatus || project?.jobStatus || "Submitted";
 
   const requester = getRequesterDetails(project);
   const company = getCompanyDetails(project);
@@ -414,9 +418,26 @@ export function RequestDetailModal({
     queryClient.invalidateQueries({ queryKey: ["project-request", projectId] });
     queryClient.invalidateQueries({ queryKey: ["project-requests"] });
     queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     onQuotationSuccess?.();
     onClose();
   };
+
+  const publishMutation = useMutation({
+    mutationFn: () => updateBookingDetails(projectId, { status: "Published" }),
+    onSuccess: () => {
+      toast.success("Job has been published successfully.");
+      queryClient.invalidateQueries({ queryKey: ["project-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["project-request", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] });
+      onQuotationSuccess?.();
+      onClose();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to publish job.");
+    },
+  });
 
   return (
     <>
@@ -567,7 +588,7 @@ export function RequestDetailModal({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <span className="text-xs text-muted-foreground block mb-1">Status</span>
-                    <StatusBadge status={String(project?.status ?? "")} />
+                    <StatusBadge status={String(normalizedStatus)} />
                   </div>
                   <div className="flex items-center gap-2">
                     <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -593,14 +614,37 @@ export function RequestDetailModal({
             <Button variant="outline" size="sm" onClick={onClose} className="w-full sm:w-auto">
               Close
             </Button>
-            <Button
-              disabled={isLoading}
-              className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-              onClick={() => setIsPrepareOpen(true)}
-            >
-              <Send className="w-5 h-5" />
-              <span>Prepare Quotation</span>
-            </Button>
+            
+            {(normalizedStatus === "Submitted" || normalizedStatus === "RFQ") && (
+              <Button
+                disabled={isLoading}
+                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                onClick={() => setIsPrepareOpen(true)}
+              >
+                <Send className="w-5 h-5" />
+                <span>Prepare Quotation</span>
+              </Button>
+            )}
+
+            {normalizedStatus === "Accepted" && (
+              <Button
+                disabled={isLoading || publishMutation.isPending}
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                onClick={() => publishMutation.mutate()}
+              >
+                {publishMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Publishing...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>Publish Job</span>
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </div>

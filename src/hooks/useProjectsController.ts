@@ -56,23 +56,23 @@ export function useProjectsController() {
     setSort(sortField);
   }, []);
 
-  /** Fetch full detail for one project request */
+  /** Fetch full detail for one project request — always hits the network */
   const openDetail = useCallback(
     async (id: string, fallbackProject?: ProjectRequest) => {
       setDetailLoading(true);
       try {
-        // Check React Query cache first
-        const cached = queryClient.getQueryData<ProjectRequest>(["project-request", id]);
-        if (cached) {
-          setSelectedProject(cached);
-          return;
-        }
+        // Always fetch fresh data so RFQ acceptance is reflected immediately
         const res = await fetchProjectRequestById(id);
         const detail = (res as any)?.data ?? (res as any)?.project ?? res;
+        // Populate the per-item cache for RequestDetailModal
         queryClient.setQueryData(["project-request", id], detail);
         setSelectedProject(detail);
       } catch {
-        if (fallbackProject) {
+        // On error, fall back to whatever we already have locally
+        const cached = queryClient.getQueryData<ProjectRequest>(["project-request", id]);
+        if (cached) {
+          setSelectedProject(cached);
+        } else if (fallbackProject) {
           setSelectedProject(fallbackProject);
         }
       } finally {

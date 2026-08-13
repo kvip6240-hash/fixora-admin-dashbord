@@ -26,9 +26,10 @@ import {
   FileCheck,
   Send,
   Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { useProjectsController } from "../hooks/useProjectsController";
-import { prepareProjectQuotation, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
+import { prepareProjectQuotation, updateBookingDetails, fetchProjectRequestById, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
 import {
   Table,
   TableHeader,
@@ -40,7 +41,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({
@@ -274,12 +275,18 @@ function StatusBadge({ status }: { status?: string }) {
   } else if (s === "assigned") {
     styleClass =
       "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/40";
+  } else if (s === "accepted") {
+    styleClass =
+      "bg-teal-500/15 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800/40";
   } else if (s === "completed") {
     styleClass =
       "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40";
   } else if (s === "cancelled") {
     styleClass =
       "bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-800/40";
+  } else if (s === "rejected") {
+    styleClass =
+      "bg-red-500/15 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/40";
   }
 
   return (
@@ -590,18 +597,50 @@ function DetailModal({
   onPrepareSuccess: () => void;
 }) {
   const [isPrepareModalOpen, setIsPrepareModalOpen] = useState(false);
-  const project = (rawProject as any)?.data ?? (rawProject as any)?.project ?? rawProject;
-  const company = getCompanyDetails(project);
-  const category = getCategoryName(project);
-  const requester = getRequesterDetails(project);
-  const location = getLocationDetails(project);
-  const schedule = getScheduleDetails(project);
+  const queryClient = useQueryClient();
 
-  const rawDate = project.createdAt || project.submittedAt || project.created_at || project.date || project.updatedAt || project.timestamp;
+  const initialProject = (rawProject as any)?.data ?? (rawProject as any)?.project ?? rawProject;
+  const projectId = String(initialProject._id || initialProject.id);
+
+  // Background fetch to ensure the modal always displays the absolute latest status
+  const { data: fetchedProject } = useQuery<ProjectRequest>({
+    queryKey: ["project-request", projectId],
+    queryFn: () => fetchProjectRequestById(projectId),
+    initialData: initialProject,
+    staleTime: 0,
+  });
+
+  const activeProject = (fetchedProject as any)?.data ?? (fetchedProject as any)?.project ?? fetchedProject ?? initialProject;
+
+  // Single source of truth status normalizer
+  const normalizedStatus = activeProject.status || activeProject.workflowStatus || activeProject.requestStatus || activeProject.quotationStatus || activeProject.jobStatus || "Submitted";
+
+  const company = getCompanyDetails(activeProject);
+  const category = getCategoryName(activeProject);
+  const requester = getRequesterDetails(activeProject);
+  const location = getLocationDetails(activeProject);
+  const schedule = getScheduleDetails(activeProject);
+
+  const rawDate = activeProject.createdAt || activeProject.submittedAt || activeProject.created_at || activeProject.date || activeProject.updatedAt || activeProject.timestamp;
   const { date } = formatSubmissionDate(rawDate);
-  const reqNumber = project.requestNumber || project.reqNumber || project.code || project.id || project._id;
-  const title = project.title || project.projectName || project.name || project.description || "Project Request";
-  const projectId = String(project._id || project.id);
+  const reqNumber = activeProject.requestNumber || activeProject.reqNumber || activeProject.code || activeProject.id || activeProject._id;
+  const title = activeProject.title || activeProject.projectName || activeProject.name || activeProject.description || "Project Request";
+
+  // Mutation to transition status to "Published"
+  const publishMutation = useMutation({
+    mutationFn: () => updateBookingDetails(projectId, { status: "Published" }),
+    onSuccess: () => {
+      toast.success("Job has been published successfully.");
+      queryClient.invalidateQueries({ queryKey: ["project-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["project-request", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] });
+      onPrepareSuccess();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to publish job.");
+    },
+  });
 
   return (
     <>
@@ -622,8 +661,8 @@ function DetailModal({
                     {String(reqNumber)}
                   </span>
                 )}
-                {Boolean(project.status) && <StatusBadge status={String(project.status)} />}
-                {Boolean(project.priority) && <PriorityBadge priority={String(project.priority)} />}
+                {Boolean(normalizedStatus) && <StatusBadge status={String(normalizedStatus)} />}
+                {Boolean(activeProject.priority) && <PriorityBadge priority={String(activeProject.priority)} />}
               </div>
               <h2 className="text-xl font-bold text-foreground mt-2 leading-tight">
                 {String(title)}
@@ -697,17 +736,17 @@ function DetailModal({
                   <span className="text-xs text-muted-foreground block">Project Title</span>
                   <span className="font-semibold text-foreground">{String(title)}</span>
                 </div>
-                {project.description && (
+                {activeProject.description && (
                   <div className="sm:col-span-2">
                     <span className="text-xs text-muted-foreground block mb-1">Description</span>
                     <div className="p-3 rounded-lg bg-card border border-border/60 text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                      {String(project.description)}
+                      {String(activeProject.description)}
                     </div>
                   </div>
                 )}
                 <div>
                   <span className="text-xs text-muted-foreground block">Priority</span>
-                  <PriorityBadge priority={String(project.priority ?? "Medium")} />
+                  <PriorityBadge priority={String(activeProject.priority ?? "Medium")} />
                 </div>
               </div>
             </div>
@@ -770,13 +809,13 @@ function DetailModal({
             </div>
 
             {/* Attachments */}
-            {Array.isArray(project.attachments) && project.attachments.length > 0 && (
+            {Array.isArray(activeProject.attachments) && activeProject.attachments.length > 0 && (
               <div className="p-4 rounded-xl bg-secondary/40 border border-border/50 space-y-3">
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 border-b border-border/40 pb-1.5">
                   <Paperclip className="w-4 h-4 text-primary" /> Attachments
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {project.attachments.map((url: string, i: number) => {
+                  {activeProject.attachments.map((url: string, i: number) => {
                     const isPdf = typeof url === "string" && url.toLowerCase().includes(".pdf");
                     return (
                       <div key={i} className="p-3 rounded-lg bg-card border border-border flex flex-col items-center justify-between text-center gap-2 group">
@@ -817,18 +856,41 @@ function DetailModal({
             )}
           </div>
 
-          {/* Bottom Prepare Quotation Large Primary Button */}
+          {/* Bottom Actions Bar */}
           <div className="mt-8 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
             <Button variant="outline" size="sm" onClick={onClose} className="w-full sm:w-auto">
               Close
             </Button>
-            <Button
-              className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-              onClick={() => setIsPrepareModalOpen(true)}
-            >
-              <Send className="w-5 h-5" />
-              <span>Prepare Quotation</span>
-            </Button>
+            
+            {(normalizedStatus === "Submitted" || normalizedStatus === "RFQ") && (
+              <Button
+                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                onClick={() => setIsPrepareModalOpen(true)}
+              >
+                <Send className="w-5 h-5" />
+                <span>Prepare Quotation</span>
+              </Button>
+            )}
+
+            {normalizedStatus === "Accepted" && (
+              <Button
+                disabled={publishMutation.isPending}
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                onClick={() => publishMutation.mutate()}
+              >
+                {publishMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Publishing...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>Publish Job</span>
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -916,12 +978,14 @@ function ProjectRequestsPage() {
     handleSearch(val);
   };
 
-  const STATUSES = ["Submitted", "RFQ", "Published", "Assigned", "Completed", "Cancelled"];
+  const STATUSES = ["Submitted", "RFQ", "Accepted", "Published", "Assigned", "Completed", "Cancelled", "Rejected"];
 
   const queryClient = useQueryClient();
 
   const handlePrepareSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["project-requests"] });
+    queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     if (selectedProject) {
       const id = String((selectedProject as any)._id || (selectedProject as any).id);
       queryClient.invalidateQueries({ queryKey: ["project-request", id] });
