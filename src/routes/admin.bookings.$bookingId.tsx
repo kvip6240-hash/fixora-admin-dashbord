@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell, Button, Card, SectionHeader } from "@/components/app-shell";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, publishProjectJob, type PrepareQuotationPayload } from "@/lib/api";
+import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, publishProjectJob, getAttachmentUrl, type PrepareQuotationPayload } from "@/lib/api";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -99,6 +99,7 @@ function formatDateTime(rawDate?: string) {
 const STATUS_CLASSES: Record<string, string> = {
   submitted: "bg-blue-500/15 text-blue-700 border-blue-200 hover:bg-blue-500/20",
   rfq:       "bg-purple-500/15 text-purple-700 border-purple-200 hover:bg-purple-500/20",
+  accepted:  "bg-teal-500/15 text-teal-700 border-teal-200 hover:bg-teal-500/20",
   published: "bg-amber-500/15 text-amber-700 border-amber-200 hover:bg-amber-500/20",
   assigned:  "bg-indigo-500/15 text-indigo-700 border-indigo-200 hover:bg-indigo-500/20",
   completed: "bg-emerald-500/15 text-emerald-700 border-emerald-200 hover:bg-emerald-500/20",
@@ -583,34 +584,46 @@ function BookingDetailsPage() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {booking.attachments.map((url: string, i: number) => {
+                  const fullUrl = getAttachmentUrl(url);
                   const isPdf = typeof url === "string" && url.toLowerCase().includes(".pdf");
                   return (
                     <div key={i} className="p-3 rounded-lg bg-card border border-border flex flex-col items-center justify-between text-center gap-2 group hover:shadow-md transition-shadow">
                       {isPdf ? (
-                        <div className="flex flex-col items-center gap-1 py-2">
+                        <a
+                          href={fullUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex flex-col items-center gap-1 py-2 hover:opacity-80 transition-opacity"
+                        >
                           <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs border border-red-100">
                             PDF
                           </div>
                           <span className="text-xs font-medium text-foreground truncate max-w-[120px]">
                             Document #{i + 1}
                           </span>
-                        </div>
+                        </a>
                       ) : (
-                        <div className="w-full h-24 rounded overflow-hidden bg-muted border">
+                        <a
+                          href={fullUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full h-24 rounded overflow-hidden bg-muted border block"
+                        >
                           <img
-                            src={url}
+                            src={fullUrl}
                             alt={`Attachment ${i + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
                             onError={(e) => {
                               (e.target as HTMLElement).style.display = "none";
                             }}
                           />
-                        </div>
+                        </a>
                       )}
                       <a
-                        href={url}
+                        href={fullUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        download
                         className="w-full py-1.5 px-2 rounded bg-secondary hover:bg-secondary/80 text-xs font-semibold text-teal-800 flex items-center justify-center gap-1.5 transition-colors border"
                       >
                         <Download className="w-3.5 h-3.5" /> Download
@@ -777,23 +790,39 @@ function BookingDetailsPage() {
 
       {/* Sticky Bottom Action Bar */}
       <div className="sticky bottom-0 left-0 right-0 bg-slate-200/95 backdrop-blur-md border-t border-slate-300 px-6 py-4 flex items-center justify-end gap-4 mt-8 rounded-b-xl shadow-lg z-40">
-        <Button
-          variant="outline"
-          className="border-none text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent font-semibold text-sm"
-          onClick={() => updateStatusMutation.mutate("Rejected")}
-          disabled={updateStatusMutation.isPending || booking.status === "Rejected"}
-        >
-          Reject Request
-        </Button>
-        {(booking.status === "Submitted" || booking.status === "RFQ") && (
-          <Button
-            className="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-lg shadow-sm flex items-center gap-2 transition-colors text-sm"
-            onClick={() => setIsPrepareRFQModalOpen(true)}
-          >
-            <Send className="w-4 h-4" />
-            <span>Prepare Quotation</span>
+        {booking.status === "Submitted" && (
+          <>
+            <Button
+              variant="outline"
+              className="border-none text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent font-semibold text-sm"
+              onClick={() => updateStatusMutation.mutate("Rejected")}
+              disabled={updateStatusMutation.isPending}
+            >
+              {updateStatusMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                  <span>Rejecting...</span>
+                </>
+              ) : (
+                <span>Reject Request</span>
+              )}
+            </Button>
+            <Button
+              className="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-lg shadow-sm flex items-center gap-2 transition-colors text-sm"
+              onClick={() => setIsPrepareRFQModalOpen(true)}
+            >
+              <Send className="w-4 h-4" />
+              <span>Prepare Quotation</span>
+            </Button>
+          </>
+        )}
+
+        {booking.status === "RFQ" && (
+          <Button disabled className="opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold text-sm">
+            Waiting for Requester Response
           </Button>
         )}
+
         {booking.status === "Accepted" && (
           <Button
             disabled={publishMutation.isPending}
@@ -811,6 +840,19 @@ function BookingDetailsPage() {
                 <span>Publish Job</span>
               </>
             )}
+          </Button>
+        )}
+
+        {booking.status === "Published" && (
+          <Button disabled className="bg-muted text-muted-foreground font-semibold text-sm cursor-not-allowed flex items-center gap-1.5 border border-slate-300">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Published</span>
+          </Button>
+        )}
+
+        {booking.status === "Rejected" && (
+          <Button disabled className="bg-red-50 text-red-600 border border-red-200 font-semibold text-sm cursor-not-allowed">
+            <span>Rejected</span>
           </Button>
         )}
       </div>

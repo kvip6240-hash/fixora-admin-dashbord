@@ -7,7 +7,19 @@
 
 import { toast } from "sonner";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "https://fixora-backend-qsl7.onrender.com";
+export const BASE_URL = import.meta.env.VITE_API_URL || "https://fixora-backend-qsl7.onrender.com";
+
+/**
+ * Prepend backend BASE_URL if the URL is a relative path (e.g. /uploads/file.pdf).
+ */
+export function getAttachmentUrl(url?: string | null): string {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const cleanPath = url.startsWith("/") ? url : `/${url}`;
+  return `${BASE_URL}${cleanPath}`;
+}
 
 export class ApiError extends Error {
   constructor(

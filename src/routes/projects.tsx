@@ -29,7 +29,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useProjectsController } from "../hooks/useProjectsController";
-import { prepareProjectQuotation, publishProjectJob, fetchProjectRequestById, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
+import { prepareProjectQuotation, publishProjectJob, updateBookingDetails, fetchProjectRequestById, getAttachmentUrl, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
 import {
   Table,
   TableHeader,
@@ -626,6 +626,27 @@ function DetailModal({
   const reqNumber = activeProject.requestNumber || activeProject.reqNumber || activeProject.code || activeProject.id || activeProject._id;
   const title = activeProject.title || activeProject.projectName || activeProject.name || activeProject.description || "Project Request";
 
+  // Mutation to transition status to "Rejected"
+  const rejectMutation = useMutation({
+    mutationFn: () => updateBookingDetails(projectId, { status: "Rejected" }),
+    onSuccess: () => {
+      toast.success("Request has been rejected.");
+      queryClient.setQueryData(["project-request", projectId], (old: any) => {
+        if (!old) return old;
+        const merged = { ...(old?.data ?? old), status: "Rejected" };
+        return old?.data ? { ...old, data: merged } : merged;
+      });
+      queryClient.invalidateQueries({ queryKey: ["project-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["project-request", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] });
+      onPrepareSuccess();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to reject request.");
+    },
+  });
+
   // Mutation to transition status to "Published"
   const publishMutation = useMutation({
     mutationFn: () => publishProjectJob(projectId),
@@ -821,34 +842,46 @@ function DetailModal({
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {activeProject.attachments.map((url: string, i: number) => {
+                    const fullUrl = getAttachmentUrl(url);
                     const isPdf = typeof url === "string" && url.toLowerCase().includes(".pdf");
                     return (
                       <div key={i} className="p-3 rounded-lg bg-card border border-border flex flex-col items-center justify-between text-center gap-2 group">
                         {isPdf ? (
-                          <div className="flex flex-col items-center gap-1 py-2">
+                          <a
+                            href={fullUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex flex-col items-center gap-1 py-2 hover:opacity-80 transition-opacity"
+                          >
                             <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs">
                               PDF
                             </div>
                             <span className="text-xs font-medium text-foreground truncate max-w-[120px]">
                               Document #{i + 1}
                             </span>
-                          </div>
+                          </a>
                         ) : (
-                          <div className="w-full h-24 rounded overflow-hidden bg-muted">
+                          <a
+                            href={fullUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full h-24 rounded overflow-hidden bg-muted block"
+                          >
                             <img
-                              src={url}
+                              src={fullUrl}
                               alt={`Attachment ${i + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
                               onError={(e) => {
                                 (e.target as HTMLElement).style.display = "none";
                               }}
                             />
-                          </div>
+                          </a>
                         )}
                         <a
-                          href={url}
+                          href={fullUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          download
                           className="w-full py-1 px-2 rounded bg-secondary hover:bg-secondary/80 text-xs font-medium text-primary flex items-center justify-center gap-1 transition-colors"
                         >
                           <Download className="w-3 h-3" /> Download
@@ -867,35 +900,82 @@ function DetailModal({
               Close
             </Button>
             
-            {(normalizedStatus === "Submitted" || normalizedStatus === "RFQ") && (
-              <Button
-                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-                onClick={() => setIsPrepareModalOpen(true)}
-              >
-                <Send className="w-5 h-5" />
-                <span>Prepare Quotation</span>
-              </Button>
-            )}
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+              {normalizedStatus === "Submitted" && (
+                <>
+                  <Button
+                    variant="outline"
+                    disabled={rejectMutation.isPending}
+                    className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/10 font-semibold px-5 py-2.5 rounded-xl transition-all"
+                    onClick={() => rejectMutation.mutate()}
+                  >
+                    {rejectMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                        <span>Rejecting...</span>
+                      </>
+                    ) : (
+                      <span>Reject</span>
+                    )}
+                  </Button>
+                  <Button
+                    className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                    onClick={() => setIsPrepareModalOpen(true)}
+                  >
+                    <Send className="w-5 h-5" />
+                    <span>Prepare Quotation</span>
+                  </Button>
+                </>
+              )}
 
-            {normalizedStatus === "Accepted" && (
-              <Button
-                disabled={publishMutation.isPending}
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-                onClick={() => publishMutation.mutate()}
-              >
-                {publishMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Publishing...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>Publish Job</span>
-                  </>
-                )}
-              </Button>
-            )}
+              {normalizedStatus === "RFQ" && (
+                <Button
+                  disabled
+                  className="w-full sm:w-auto opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold px-6 py-2.5 rounded-xl cursor-not-allowed"
+                >
+                  <span>Waiting for Requester Response</span>
+                </Button>
+              )}
+
+              {normalizedStatus === "Accepted" && (
+                <Button
+                  disabled={publishMutation.isPending}
+                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                  onClick={() => publishMutation.mutate()}
+                >
+                  {publishMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Publishing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>Publish Job</span>
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {normalizedStatus === "Published" && (
+                <Button
+                  disabled
+                  className="w-full sm:w-auto bg-muted text-muted-foreground font-semibold px-8 py-2.5 rounded-xl cursor-not-allowed flex items-center gap-2 border border-border"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <span>Published</span>
+                </Button>
+              )}
+
+              {normalizedStatus === "Rejected" && (
+                <Button
+                  disabled
+                  className="w-full sm:w-auto bg-red-50 text-red-600 border border-red-200 font-semibold px-8 py-2.5 rounded-xl cursor-not-allowed"
+                >
+                  <span>Rejected</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

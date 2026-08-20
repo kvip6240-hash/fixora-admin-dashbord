@@ -30,6 +30,8 @@ import {
   fetchProjectRequestById,
   prepareProjectQuotation,
   publishProjectJob,
+  updateBookingDetails,
+  getAttachmentUrl,
   type ProjectRequest,
   type PrepareQuotationPayload,
 } from "@/lib/api";
@@ -132,6 +134,7 @@ function formatDateTime(raw?: string): { date: string; time: string } {
 const STATUS_CLASSES: Record<string, string> = {
   submitted: "bg-blue-500/15 text-blue-700 border-blue-200",
   rfq:       "bg-purple-500/15 text-purple-700 border-purple-200",
+  accepted:  "bg-teal-500/15 text-teal-700 border-teal-200",
   published: "bg-amber-500/15 text-amber-700 border-amber-200",
   assigned:  "bg-indigo-500/15 text-indigo-700 border-indigo-200",
   completed: "bg-emerald-500/15 text-emerald-700 border-emerald-200",
@@ -423,6 +426,26 @@ export function RequestDetailModal({
     onClose();
   };
 
+  const rejectMutation = useMutation({
+    mutationFn: () => updateBookingDetails(projectId, { status: "Rejected" }),
+    onSuccess: (res: any) => {
+      toast.success("Request has been rejected.");
+      queryClient.setQueryData(["project-request", projectId], (old: any) => {
+        if (!old) return old;
+        const merged = { ...(old?.data ?? old), status: "Rejected" };
+        return old?.data ? { ...old, data: merged } : merged;
+      });
+      queryClient.invalidateQueries({ queryKey: ["project-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["project-request", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] });
+      onQuotationSuccess?.();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to reject request.");
+    },
+  });
+
   const publishMutation = useMutation({
     mutationFn: () => publishProjectJob(projectId),
     onSuccess: (res) => {
@@ -452,144 +475,182 @@ export function RequestDetailModal({
         onClick={onClose}
       >
         <div
-          className="relative w-full max-w-3xl rounded-2xl bg-card border border-border shadow-2xl p-6 my-8 max-h-[92vh] overflow-y-auto"
+          className="relative w-full max-w-3xl rounded-2xl bg-card border border-border shadow-2xl p-6 my-8 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* ── Header ── */}
+          {/* Header */}
           <div className="flex items-start justify-between mb-5 border-b border-border pb-4">
-            <div className="space-y-1.5">
-              <div className="flex items-center flex-wrap gap-2">
+            <div>
+              <div className="flex items-center gap-2">
                 {reqNumber && (
-                  <span className="text-xs font-mono font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-md">
-                    {reqNumber}
+                  <span className="text-xs font-mono font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+                    {String(reqNumber)}
                   </span>
                 )}
-                <StatusBadge status={String(project?.status ?? "")} />
-                <PriorityBadge priority={String(project?.priority ?? "")} />
+                {Boolean(normalizedStatus) && <StatusBadge status={String(normalizedStatus)} />}
+                {Boolean(project?.priority) && <PriorityBadge priority={String(project?.priority)} />}
               </div>
-              <h2 className="text-xl font-bold text-foreground leading-tight">{String(title)}</h2>
+              <h2 className="text-xl font-bold text-foreground mt-2 leading-tight">
+                {String(title)}
+              </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {isLoading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-24 bg-secondary/50 rounded-xl animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4 text-sm">
-              {/* Requester & Company (side by side) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Section icon={UserIcon} title="Requester Details">
-                  <div className="space-y-2">
-                    <InfoRow label="Name" value={requester.name} />
-                    <InfoRow label="Email" value={requester.email} />
-                    <InfoRow label="Phone" value={requester.phone} />
-                  </div>
-                </Section>
-                <Section icon={Building2} title="Company Details">
-                  <div className="space-y-2">
-                    <InfoRow label="Company Name" value={company.name} />
-                    <InfoRow label="Company Email" value={company.email} />
-                  </div>
-                </Section>
-              </div>
+          {/* Main Details Body */}
+          <div className="space-y-4 text-xs">
+            {/* Requester & Company Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Section title="Requester Information" icon={UserIcon}>
+                <div>
+                  <span className="text-muted-foreground block">Full Name</span>
+                  <span className="font-semibold text-foreground">{requester.name}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block">Email</span>
+                  <span className="font-medium text-foreground">{requester.email}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block">Phone</span>
+                  <span className="font-medium text-foreground">{requester.phone}</span>
+                </div>
+              </Section>
 
-              {/* Project Details */}
-              <Section icon={FileText} title="Project Details">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <InfoRow label="Request Number" value={reqNumber} />
-                  <InfoRow label="Category / Service" value={category} />
+              <Section title="Company Information" icon={Building2}>
+                <div>
+                  <span className="text-muted-foreground block">Company Name</span>
+                  <span className="font-semibold text-foreground">{company.name}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block">Category</span>
+                  <span className="font-medium text-foreground">{category}</span>
+                </div>
+              </Section>
+            </div>
+
+            {/* Project Details */}
+            <Section title="Project Details" icon={FileText}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <span className="text-muted-foreground block">Project Title</span>
+                  <span className="font-semibold text-foreground">{String(title)}</span>
+                </div>
+                {project?.description && (
                   <div className="sm:col-span-2">
-                    <InfoRow label="Project Title" value={String(title)} />
-                  </div>
-                  {project?.description && (
-                    <div className="sm:col-span-2">
-                      <span className="text-xs text-muted-foreground block mb-1">Description</span>
-                      <div className="p-3 rounded-lg bg-card border border-border/60 text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                        {String(project.description)}
-                      </div>
+                    <span className="text-muted-foreground block mb-1">Description</span>
+                    <div className="p-3 rounded-lg bg-card border border-border/60 text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                      {String(project.description)}
                     </div>
-                  )}
+                  </div>
+                )}
+                <div>
+                  <span className="text-muted-foreground block">Priority</span>
+                  <PriorityBadge priority={String(project?.priority ?? "Medium")} />
+                </div>
+              </div>
+            </Section>
+
+            {/* Location & Schedule Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Section title="Location" icon={MapPin}>
+                <div>
+                  <span className="text-muted-foreground block">Address</span>
+                  <span className="font-medium text-foreground">{location.address}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-xs text-muted-foreground block mb-1">Priority</span>
-                    <PriorityBadge priority={String(project?.priority ?? "")} />
+                    <span className="text-muted-foreground block">City</span>
+                    <span className="font-medium text-foreground">{location.city}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block">Pincode</span>
+                    <span className="font-medium text-foreground">{location.pincode}</span>
                   </div>
                 </div>
               </Section>
 
-              {/* Location & Schedule (side by side) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Section icon={MapPin} title="Location">
-                  <div className="grid grid-cols-2 gap-2">
-                    <InfoRow label="Site Name" value={location.siteName} />
-                    <InfoRow label="City" value={location.city} />
-                    <InfoRow label="State" value={location.state} />
-                    <InfoRow label="Country" value={location.country} />
-                    <InfoRow label="Pincode" value={location.pincode} />
-                    <div className="col-span-2">
-                      <InfoRow label="Address" value={location.address} />
-                    </div>
+              <Section title="Schedule & Submission" icon={CalendarDays}>
+                <div>
+                  <span className="text-muted-foreground block">Preferred Date</span>
+                  <span className="font-medium text-foreground">{schedule.preferredDate}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-muted-foreground block">Time Slot</span>
+                    <span className="font-medium text-foreground">{schedule.serviceTime}</span>
                   </div>
-                </Section>
-                <Section icon={CalendarDays} title="Schedule">
-                  <div className="space-y-2">
-                    <InfoRow label="Preferred Date" value={schedule.preferredDate} />
-                    <InfoRow label="Service Time" value={schedule.serviceTime} />
-                    <InfoRow label="Estimated Duration" value={schedule.estimatedDuration} />
+                  <div>
+                    <span className="text-muted-foreground block">Duration</span>
+                    <span className="font-medium text-foreground">{schedule.estimatedDuration}</span>
                   </div>
-                </Section>
-              </div>
+                </div>
+              </Section>
+            </div>
 
-              {/* Attachments */}
-              {Array.isArray(project?.attachments) && project.attachments.length > 0 && (
-                <Section icon={Paperclip} title="Attachments">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(project.attachments as string[]).map((url, i) => {
-                      const isPdf = typeof url === "string" && url.toLowerCase().includes(".pdf");
-                      return (
-                        <div key={i} className="p-3 rounded-lg bg-card border border-border flex flex-col items-center gap-2 group">
-                          {isPdf ? (
-                            <div className="flex flex-col items-center gap-1 py-2">
-                              <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs border border-red-100">
-                                PDF
-                              </div>
-                              <span className="text-xs font-medium text-foreground truncate max-w-[110px]">Document #{i + 1}</span>
-                            </div>
-                          ) : (
-                            <div className="w-full h-24 rounded overflow-hidden bg-muted">
-                              <img
-                                src={url}
-                                alt={`Attachment ${i + 1}`}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
-                              />
-                            </div>
-                          )}
+            {/* Attachments */}
+            {Array.isArray(project?.attachments) && project.attachments.length > 0 && (
+              <Section title="Attachments" icon={Paperclip}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {project.attachments.map((url: string, i: number) => {
+                    const fullUrl = getAttachmentUrl(url);
+                    const isPdf = typeof url === "string" && url.toLowerCase().includes(".pdf");
+                    return (
+                      <div key={i} className="p-3 rounded-lg bg-card border border-border flex flex-col items-center justify-between text-center gap-2 group">
+                        {isPdf ? (
                           <a
-                            href={url}
+                            href={fullUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-1 px-2 rounded bg-secondary hover:bg-secondary/70 text-xs font-medium text-primary flex items-center justify-center gap-1 transition-colors"
+                            className="flex flex-col items-center gap-1 py-2 hover:opacity-80 transition-opacity"
                           >
-                            <Download className="w-3 h-3" /> Download
+                            <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs">
+                              PDF
+                            </div>
+                            <span className="text-xs font-medium text-foreground truncate max-w-[120px]">
+                              Document #{i + 1}
+                            </span>
                           </a>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Section>
-              )}
+                        ) : (
+                          <a
+                            href={fullUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full h-24 rounded overflow-hidden bg-muted block"
+                          >
+                            <img
+                              src={fullUrl}
+                              alt={`Attachment ${i + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
+                            />
+                          </a>
+                        )}
+                        <a
+                          href={fullUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                          className="w-full py-1 px-2 rounded bg-secondary hover:bg-secondary/80 text-xs font-medium text-primary flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <Download className="w-3 h-3" /> Download
+                        </a>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
 
-              {/* Status & Submitted Info */}
-              <Section icon={CheckCircle2} title="Status">
+            {/* Submission Meta Card */}
+            <div className="p-3 rounded-xl bg-muted/40 border border-border/50">
+              <Section title="Submission Information" icon={FileCheck}>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <span className="text-xs text-muted-foreground block mb-1">Status</span>
@@ -612,7 +673,7 @@ export function RequestDetailModal({
                 </div>
               </Section>
             </div>
-          )}
+          </div>
 
           {/* ── Bottom Action Bar ── */}
           <div className="mt-8 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -620,36 +681,83 @@ export function RequestDetailModal({
               Close
             </Button>
             
-            {(normalizedStatus === "Submitted" || normalizedStatus === "RFQ") && (
-              <Button
-                disabled={isLoading}
-                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-                onClick={() => setIsPrepareOpen(true)}
-              >
-                <Send className="w-5 h-5" />
-                <span>Prepare Quotation</span>
-              </Button>
-            )}
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+              {normalizedStatus === "Submitted" && (
+                <>
+                  <Button
+                    variant="outline"
+                    disabled={isLoading || rejectMutation.isPending}
+                    className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/10 font-semibold px-5 py-2.5 rounded-xl transition-all"
+                    onClick={() => rejectMutation.mutate()}
+                  >
+                    {rejectMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                        <span>Rejecting...</span>
+                      </>
+                    ) : (
+                      <span>Reject</span>
+                    )}
+                  </Button>
+                  <Button
+                    disabled={isLoading}
+                    className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                    onClick={() => setIsPrepareOpen(true)}
+                  >
+                    <Send className="w-5 h-5" />
+                    <span>Prepare Quotation</span>
+                  </Button>
+                </>
+              )}
 
-            {normalizedStatus === "Accepted" && (
-              <Button
-                disabled={isLoading || publishMutation.isPending}
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-                onClick={() => publishMutation.mutate()}
-              >
-                {publishMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Publishing...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>Publish Job</span>
-                  </>
-                )}
-              </Button>
-            )}
+              {normalizedStatus === "RFQ" && (
+                <Button
+                  disabled
+                  className="w-full sm:w-auto opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold px-6 py-2.5 rounded-xl cursor-not-allowed"
+                >
+                  <span>Waiting for Requester Response</span>
+                </Button>
+              )}
+
+              {normalizedStatus === "Accepted" && (
+                <Button
+                  disabled={isLoading || publishMutation.isPending}
+                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
+                  onClick={() => publishMutation.mutate()}
+                >
+                  {publishMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Publishing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>Publish Job</span>
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {normalizedStatus === "Published" && (
+                <Button
+                  disabled
+                  className="w-full sm:w-auto bg-muted text-muted-foreground font-semibold px-8 py-2.5 rounded-xl cursor-not-allowed flex items-center gap-2 border border-border"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <span>Published</span>
+                </Button>
+              )}
+
+              {normalizedStatus === "Rejected" && (
+                <Button
+                  disabled
+                  className="w-full sm:w-auto bg-red-50 text-red-600 border border-red-200 font-semibold px-8 py-2.5 rounded-xl cursor-not-allowed"
+                >
+                  <span>Rejected</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
