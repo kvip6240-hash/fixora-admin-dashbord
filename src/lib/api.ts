@@ -7,7 +7,7 @@
 
 import { toast } from "sonner";
 
-export const BASE_URL = import.meta.env.VITE_API_URL || "https://fixora-backend-qsl7.onrender.com";
+export const BASE_URL = import.meta.env.VITE_API_URL;
 
 /**
  * Prepend backend BASE_URL if the URL is a relative path (e.g. /uploads/file.pdf).
