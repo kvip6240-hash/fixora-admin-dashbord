@@ -11,7 +11,6 @@ import {
   LifeBuoy,
   Settings,
   Search,
-  Bell,
   ChevronDown,
 } from "lucide-react";
 
@@ -129,10 +128,6 @@ export function AppShell({
             <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-muted-foreground px-2.5 py-1 rounded-md bg-secondary/60">
               <span className="w-1.5 h-1.5 rounded-full bg-success" /> All systems operational
             </span>
-            <button className="relative w-9 h-9 rounded-lg hover:bg-secondary/70 grid place-items-center">
-              <Bell className="w-4 h-4 text-muted-foreground" />
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-destructive" />
-            </button>
             <button className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg hover:bg-secondary/70">
               <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-semibold">
                 {user ? getInitials(user.name) : "AD"}

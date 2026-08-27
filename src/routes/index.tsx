@@ -8,8 +8,6 @@ import {
   CheckCircle2,
   Layers,
   Download,
-  Filter,
-  RefreshCw,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -149,19 +147,6 @@ function Dashboard() {
       subtitle="Real-time control center for platform bookings, revenue, and service operations."
       actions={
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="bg-white">
-            <Filter className="w-3.5 h-3.5" />
-            Filter
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-white"
-            onClick={() => refetchRequests()}
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Sync
-          </Button>
           <Button variant="primary" size="sm">
             <Download className="w-3.5 h-3.5" />
             Export Report
