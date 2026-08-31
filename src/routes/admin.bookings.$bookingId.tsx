@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell, Button, Card, SectionHeader } from "@/components/app-shell";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, publishProjectJob, getAttachmentUrl, type PrepareQuotationPayload } from "@/lib/api";
+import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -583,54 +584,9 @@ function BookingDetailsPage() {
                 Attachments
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {booking.attachments.map((url: string, i: number) => {
-                  const fullUrl = getAttachmentUrl(url);
-                  const isPdf = typeof url === "string" && url.toLowerCase().includes(".pdf");
-                  return (
-                    <div key={i} className="p-3 rounded-lg bg-card border border-border flex flex-col items-center justify-between text-center gap-2 group hover:shadow-md transition-shadow">
-                      {isPdf ? (
-                        <a
-                          href={fullUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex flex-col items-center gap-1 py-2 hover:opacity-80 transition-opacity"
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs border border-red-100">
-                            PDF
-                          </div>
-                          <span className="text-xs font-medium text-foreground truncate max-w-[120px]">
-                            Document #{i + 1}
-                          </span>
-                        </a>
-                      ) : (
-                        <a
-                          href={fullUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full h-24 rounded overflow-hidden bg-muted border block"
-                        >
-                          <img
-                            src={fullUrl}
-                            alt={`Attachment ${i + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = "none";
-                            }}
-                          />
-                        </a>
-                      )}
-                      <a
-                        href={fullUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                        className="w-full py-1.5 px-2 rounded bg-secondary hover:bg-secondary/80 text-xs font-semibold text-teal-800 flex items-center justify-center gap-1.5 transition-colors border"
-                      >
-                        <Download className="w-3.5 h-3.5" /> Download
-                      </a>
-                    </div>
-                  );
-                })}
+                {booking.attachments.map((att: any, i: number) => (
+                  <AttachmentItem key={i} attachment={att} index={i} />
+                ))}
               </div>
             </Card>
           )}

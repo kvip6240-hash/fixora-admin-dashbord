@@ -15,6 +15,8 @@ import {
   fetchServiceProvidersCount,
   fetchCategoriesCount,
   fetchProjectRequests,
+  fetchActiveBookings,
+  fetchPendingBookings,
   type ProjectRequest,
 } from "@/lib/api";
 import { useMemo } from "react";
@@ -53,6 +55,18 @@ function Dashboard() {
     staleTime: 30_000,
   });
 
+  const { data: activeBookingsData, isLoading: activeLoading } = useQuery({
+    queryKey: ["active-bookings-stat"],
+    queryFn: fetchActiveBookings,
+    staleTime: 30_000,
+  });
+
+  const { data: pendingBookingsData, isLoading: pendingLoading } = useQuery({
+    queryKey: ["pending-bookings-stat"],
+    queryFn: fetchPendingBookings,
+    staleTime: 30_000,
+  });
+
   // ── Recent project requests (newest first, limit 10) ──
   const {
     data: recentRequestsData,
@@ -79,6 +93,8 @@ function Dashboard() {
     const totalUsers = usersLoading ? "..." : (usersCountData?.count ?? 0).toLocaleString();
     const totalProviders = providersLoading ? "..." : (providersCountData?.count ?? 0).toLocaleString();
     const totalCategories = categoriesLoading ? "..." : `${categoriesCountData?.count ?? 0} Active`;
+    const activeCount = activeLoading ? "..." : (activeBookingsData?.count ?? 0).toLocaleString();
+    const pendingCount = pendingLoading ? "..." : (pendingBookingsData?.count ?? 0).toLocaleString();
 
     return [
       {
@@ -103,21 +119,23 @@ function Dashboard() {
       },
       {
         title: "Active Bookings",
-        value: "842",
+        value: activeCount,
         change: "+5.4%",
         isPositive: true,
         icon: CalendarCheck,
         iconBg: "bg-emerald-50",
         iconColor: "text-[#10B981]",
+        to: "/projects",
       },
       {
         title: "Pending Bookings",
-        value: "156",
+        value: pendingCount,
         change: "-2.1%",
         isPositive: false,
         icon: Clock,
         iconBg: "bg-amber-50",
         iconColor: "text-[#F59E0B]",
+        to: "/projects",
       },
       {
         title: "Completed Services",

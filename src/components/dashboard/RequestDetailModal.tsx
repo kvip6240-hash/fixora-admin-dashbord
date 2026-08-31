@@ -35,6 +35,7 @@ import {
   type ProjectRequest,
   type PrepareQuotationPayload,
 } from "@/lib/api";
+import { AttachmentItem } from "./AttachmentItem";
 import { useQuery } from "@tanstack/react-query";
 
 // ─── Data Extractors ──────────────────────────────────────────────────────────
@@ -596,54 +597,9 @@ export function RequestDetailModal({
             {Array.isArray(project?.attachments) && project.attachments.length > 0 && (
               <Section title="Attachments" icon={Paperclip}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {project.attachments.map((url: string, i: number) => {
-                    const fullUrl = getAttachmentUrl(url);
-                    const isPdf = typeof url === "string" && url.toLowerCase().includes(".pdf");
-                    return (
-                      <div key={i} className="p-3 rounded-lg bg-card border border-border flex flex-col items-center justify-between text-center gap-2 group">
-                        {isPdf ? (
-                          <a
-                            href={fullUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex flex-col items-center gap-1 py-2 hover:opacity-80 transition-opacity"
-                          >
-                            <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs">
-                              PDF
-                            </div>
-                            <span className="text-xs font-medium text-foreground truncate max-w-[120px]">
-                              Document #{i + 1}
-                            </span>
-                          </a>
-                        ) : (
-                          <a
-                            href={fullUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full h-24 rounded overflow-hidden bg-muted block"
-                          >
-                            <img
-                              src={fullUrl}
-                              alt={`Attachment ${i + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = "none";
-                              }}
-                            />
-                          </a>
-                        )}
-                        <a
-                          href={fullUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download
-                          className="w-full py-1 px-2 rounded bg-secondary hover:bg-secondary/80 text-xs font-medium text-primary flex items-center justify-center gap-1 transition-colors"
-                        >
-                          <Download className="w-3 h-3" /> Download
-                        </a>
-                      </div>
-                    );
-                  })}
+                  {project.attachments.map((att: any, i: number) => (
+                    <AttachmentItem key={i} attachment={att} index={i} />
+                  ))}
                 </div>
               </Section>
             )}

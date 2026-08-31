@@ -9,16 +9,99 @@ import { toast } from "sonner";
 
 export const BASE_URL = import.meta.env.VITE_API_URL;
 
+export type AttachmentType = "image" | "video" | "pdf" | "document" | "other";
+
 /**
  * Prepend backend BASE_URL if the URL is a relative path (e.g. /uploads/file.pdf).
+ * Preserves Cloudinary HTTPS URLs intact and upgrades http:// Cloudinary URLs.
  */
-export function getAttachmentUrl(url?: string | null): string {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
+export function getAttachmentUrl(
+  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string } | null,
+): string {
+  if (!attachment) return "";
+
+  let rawUrl = "";
+  if (typeof attachment === "string") {
+    rawUrl = attachment.trim();
+  } else if (typeof attachment === "object") {
+    rawUrl = (attachment.url || attachment.secure_url || attachment.fileUrl || attachment.path || "").trim();
   }
-  const cleanPath = url.startsWith("/") ? url : `/${url}`;
-  return `${BASE_URL}${cleanPath}`;
+
+  if (!rawUrl) return "";
+
+  // Upgrade insecure Cloudinary HTTP URLs to HTTPS to prevent browser mixed-content blocking
+  if (rawUrl.startsWith("http://res.cloudinary.com/")) {
+    return rawUrl.replace("http://res.cloudinary.com/", "https://res.cloudinary.com/");
+  }
+
+  // Already a full absolute URL
+  if (
+    rawUrl.startsWith("http://") ||
+    rawUrl.startsWith("https://") ||
+    rawUrl.startsWith("data:") ||
+    rawUrl.startsWith("blob:")
+  ) {
+    return rawUrl;
+  }
+
+  // Relative path (e.g. /uploads/...)
+  const base = (BASE_URL || "").replace(/\/+$/, "");
+  const cleanPath = rawUrl.startsWith("/") ? rawUrl : `/${rawUrl}`;
+  return `${base}${cleanPath}`;
+}
+
+/**
+ * Accurately determines file type for images, videos, PDFs, and documents
+ */
+export function getAttachmentType(
+  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string; type?: string; mimeType?: string; resource_type?: string } | null,
+): AttachmentType {
+  if (!attachment) return "other";
+
+  // Check object metadata if present
+  if (typeof attachment === "object") {
+    if (attachment.type === "video" || attachment.resource_type === "video" || attachment.mimeType?.startsWith("video/")) {
+      return "video";
+    }
+    if (attachment.type === "image" || attachment.resource_type === "image" || attachment.mimeType?.startsWith("image/")) {
+      return "image";
+    }
+    if (attachment.mimeType === "application/pdf" || attachment.type === "pdf") {
+      return "pdf";
+    }
+  }
+
+  const url = getAttachmentUrl(attachment).toLowerCase();
+
+  // Cloudinary resource path check
+  if (url.includes("/video/upload/") || url.includes("/video/")) {
+    return "video";
+  }
+  if (url.includes("/image/upload/") || url.includes("/image/")) {
+    return "image";
+  }
+
+  // Video extensions
+  if (/\.(mp4|mov|avi|webm|mkv|m4v|3gp|ogv|flv|wmv)(\?.*)?$/i.test(url)) {
+    return "video";
+  }
+
+  // PDF
+  if (/\.pdf(\?.*)?$/i.test(url)) {
+    return "pdf";
+  }
+
+  // Image extensions
+  if (/\.(jpg|jpeg|png|webp|gif|svg|bmp|ico|tiff|heic|avif)(\?.*)?$/i.test(url)) {
+    return "image";
+  }
+
+  // Document extensions
+  if (/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv)(\?.*)?$/i.test(url)) {
+    return "document";
+  }
+
+  return "other";
 }
 
 export class ApiError extends Error {
@@ -513,6 +596,45 @@ export async function updateBookingDetails(id: string, data: { status?: string; 
     method: "PUT",
     body: JSON.stringify(data),
   });
+}
+
+export interface ActiveBookingItem {
+  _id: string;
+  requestNumber?: string | null;
+  title: string;
+  categoryName?: string | null;
+  priority: string;
+  status: string;
+  createdAt: string;
+  submittedAt?: string | null;
+  acceptedAt?: string | null;
+  rfqNumber?: string | null;
+  quotedAmount?: number | null;
+  currency?: string | null;
+  customerName?: string | null;
+}
+
+export interface PendingBookingItem {
+  _id: string;
+  requestNumber?: string | null;
+  title: string;
+  categoryName?: string | null;
+  priority: string;
+  status: string;
+  createdAt: string;
+  submittedAt?: string | null;
+  minutesWaiting: number;
+  customerName?: string | null;
+}
+
+/** GET /api/admin/bookings/active */
+export async function fetchActiveBookings(): Promise<{ success: boolean; count: number; data: ActiveBookingItem[] }> {
+  return request<{ success: boolean; count: number; data: ActiveBookingItem[] }>("/api/admin/bookings/active");
+}
+
+/** GET /api/admin/bookings/pending */
+export async function fetchPendingBookings(): Promise<{ success: boolean; count: number; data: PendingBookingItem[] }> {
+  return request<{ success: boolean; count: number; data: PendingBookingItem[] }>("/api/admin/bookings/pending");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
