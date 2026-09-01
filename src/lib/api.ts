@@ -12,21 +12,122 @@ export const BASE_URL = import.meta.env.VITE_API_URL;
 export type AttachmentType = "image" | "video" | "pdf" | "document" | "other";
 
 /**
+ * Safe helper to extract and normalize media URL from multiple potential API shapes.
+ * Returns a trimmed string URL if successful, otherwise null.
+ */
+export function getMediaUrl(
+  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string } | null,
+): string | null {
+  if (!attachment) return null;
+
+  if (typeof attachment === "string") {
+    return attachment.trim();
+  }
+
+  if (typeof attachment === "object" && !Array.isArray(attachment)) {
+    const secureUrl = attachment.secure_url;
+    if (typeof secureUrl === "string") {
+      return secureUrl.trim();
+    }
+    const url = attachment.url;
+    if (typeof url === "string") {
+      return url.trim();
+    }
+    const fileUrl = attachment.fileUrl;
+    if (typeof fileUrl === "string") {
+      return fileUrl.trim();
+    }
+    const path = attachment.path;
+    if (typeof path === "string") {
+      return path.trim();
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Safely determines if the media attachment is a video.
+ */
+export function isVideo(
+  attachment: any,
+  mediaUrl: string | null,
+): boolean {
+  if (!mediaUrl) return false;
+
+  if (attachment && typeof attachment === "object" && !Array.isArray(attachment)) {
+    if (attachment.resource_type === "video") {
+      return true;
+    }
+    const mimeType = attachment.mimeType;
+    if (typeof mimeType === "string" && mimeType.toLowerCase().trim().startsWith("video/")) {
+      return true;
+    }
+    const format = attachment.format;
+    if (typeof format === "string") {
+      const lowerFormat = format.toLowerCase().trim();
+      if (["mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp", "ogv", "flv", "wmv"].includes(lowerFormat)) {
+        return true;
+      }
+    }
+  }
+
+  const urlLower = mediaUrl.toLowerCase();
+  if (urlLower.includes("/video/upload/") || urlLower.includes("/video/")) {
+    return true;
+  }
+  if (/\.(mp4|mov|avi|webm|mkv|m4v|3gp|ogv|flv|wmv)(\?.*)?$/i.test(urlLower)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Safely determines if the media attachment is an image.
+ */
+export function isImage(
+  attachment: any,
+  mediaUrl: string | null,
+): boolean {
+  if (!mediaUrl) return false;
+
+  if (attachment && typeof attachment === "object" && !Array.isArray(attachment)) {
+    if (attachment.resource_type === "image") {
+      return true;
+    }
+    const mimeType = attachment.mimeType;
+    if (typeof mimeType === "string" && mimeType.toLowerCase().trim().startsWith("image/")) {
+      return true;
+    }
+    const format = attachment.format;
+    if (typeof format === "string") {
+      const lowerFormat = format.toLowerCase().trim();
+      if (["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "ico", "tiff", "heic", "avif"].includes(lowerFormat)) {
+        return true;
+      }
+    }
+  }
+
+  const urlLower = mediaUrl.toLowerCase();
+  if (urlLower.includes("/image/upload/") || urlLower.includes("/image/")) {
+    return true;
+  }
+  if (/\.(jpg|jpeg|png|webp|gif|svg|bmp|ico|tiff|heic|avif)(\?.*)?$/i.test(urlLower)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Prepend backend BASE_URL if the URL is a relative path (e.g. /uploads/file.pdf).
  * Preserves Cloudinary HTTPS URLs intact and upgrades http:// Cloudinary URLs.
  */
 export function getAttachmentUrl(
   attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string } | null,
 ): string {
-  if (!attachment) return "";
-
-  let rawUrl = "";
-  if (typeof attachment === "string") {
-    rawUrl = attachment.trim();
-  } else if (typeof attachment === "object") {
-    rawUrl = (attachment.url || attachment.secure_url || attachment.fileUrl || attachment.path || "").trim();
-  }
-
+  const rawUrl = getMediaUrl(attachment);
   if (!rawUrl) return "";
 
   // Upgrade insecure Cloudinary HTTP URLs to HTTPS to prevent browser mixed-content blocking
@@ -54,50 +155,63 @@ export function getAttachmentUrl(
  * Accurately determines file type for images, videos, PDFs, and documents
  */
 export function getAttachmentType(
-  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string; type?: string; mimeType?: string; resource_type?: string } | null,
+  attachment?: any,
 ): AttachmentType {
   if (!attachment) return "other";
 
+  const mediaUrl = getMediaUrl(attachment);
+  if (!mediaUrl) return "other";
+
   // Check object metadata if present
-  if (typeof attachment === "object") {
-    if (attachment.type === "video" || attachment.resource_type === "video" || attachment.mimeType?.startsWith("video/")) {
+  if (attachment && typeof attachment === "object" && !Array.isArray(attachment)) {
+    if (attachment.type === "video" || attachment.resource_type === "video") {
       return "video";
     }
-    if (attachment.type === "image" || attachment.resource_type === "image" || attachment.mimeType?.startsWith("image/")) {
+    if (attachment.type === "image" || attachment.resource_type === "image") {
       return "image";
     }
-    if (attachment.mimeType === "application/pdf" || attachment.type === "pdf") {
+    if (attachment.type === "pdf") {
       return "pdf";
+    }
+
+    const mimeType = attachment.mimeType;
+    if (typeof mimeType === "string") {
+      const mimeLower = mimeType.toLowerCase().trim();
+      if (mimeLower.startsWith("video/")) return "video";
+      if (mimeLower.startsWith("image/")) return "image";
+      if (mimeLower === "application/pdf") return "pdf";
+    }
+
+    const format = attachment.format;
+    if (typeof format === "string") {
+      const formatLower = format.toLowerCase().trim();
+      if (["mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp", "ogv", "flv", "wmv"].includes(formatLower)) {
+        return "video";
+      }
+      if (["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "ico", "tiff", "heic", "avif"].includes(formatLower)) {
+        return "image";
+      }
+      if (formatLower === "pdf") return "pdf";
     }
   }
 
-  const url = getAttachmentUrl(attachment).toLowerCase();
-
-  // Cloudinary resource path check
-  if (url.includes("/video/upload/") || url.includes("/video/")) {
+  // Fallback to URL and content pattern checks
+  if (isVideo(attachment, mediaUrl)) {
     return "video";
   }
-  if (url.includes("/image/upload/") || url.includes("/image/")) {
+  if (isImage(attachment, mediaUrl)) {
     return "image";
   }
 
-  // Video extensions
-  if (/\.(mp4|mov|avi|webm|mkv|m4v|3gp|ogv|flv|wmv)(\?.*)?$/i.test(url)) {
-    return "video";
-  }
+  const urlLower = mediaUrl.toLowerCase();
 
   // PDF
-  if (/\.pdf(\?.*)?$/i.test(url)) {
+  if (/\.pdf(\?.*)?$/i.test(urlLower)) {
     return "pdf";
   }
 
-  // Image extensions
-  if (/\.(jpg|jpeg|png|webp|gif|svg|bmp|ico|tiff|heic|avif)(\?.*)?$/i.test(url)) {
-    return "image";
-  }
-
   // Document extensions
-  if (/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv)(\?.*)?$/i.test(url)) {
+  if (/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv)(\?.*)?$/i.test(urlLower)) {
     return "document";
   }
 
@@ -220,6 +334,24 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+/** A single Cloudinary attachment object returned by the backend upload flow. */
+export interface CloudinaryAttachment {
+  url?: string;
+  secure_url?: string;
+  public_id?: string;
+  resource_type?: string;
+  format?: string;
+  fileUrl?: string;
+  path?: string;
+  name?: string;
+  type?: string;
+  mimeType?: string;
+  [key: string]: unknown;
+}
+
+/** Attachment is either a plain URL string OR a Cloudinary object — both are valid. */
+export type Attachment = string | CloudinaryAttachment;
+
 export interface ProjectRequest {
   _id: string;
   title?: string;
@@ -228,7 +360,7 @@ export interface ProjectRequest {
   company?: Company | string;
   location?: string;
   schedule?: string;
-  attachments?: string[];
+  attachments?: Attachment[];
   createdAt?: string;
   description?: string;
   [key: string]: unknown;
@@ -576,7 +708,7 @@ export interface BookingDetails {
   };
   location?: any;
   schedule?: any;
-  attachments?: string[];
+  attachments?: Attachment[];
   [key: string]: unknown;
 }
 

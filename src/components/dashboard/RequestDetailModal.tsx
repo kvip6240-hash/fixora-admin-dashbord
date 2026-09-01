@@ -219,14 +219,14 @@ function PrepareRFQModal({
 
   const field = (label: string, key: keyof PrepareQuotationPayload, required = false, span2 = false) => (
     <div className={span2 ? "md:col-span-2" : ""}>
-      <label className="block text-xs font-semibold text-foreground uppercase tracking-wider mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
+      <label className="block text-[13px] font-semibold leading-[18px] text-foreground mb-[6px]">
+        {label} {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       <input
         type="number" min="0" step="0.01" placeholder="0.00"
         value={(formData[key] as number) || ""}
         onChange={(e) => setFormData({ ...formData, [key]: parseFloat(e.target.value) || 0 })}
-        className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border focus:border-primary outline-none text-sm"
+        className="w-full h-[44px] min-h-[44px] px-[14px] rounded-[10px] bg-secondary/50 border border-border focus:border-primary outline-none text-sm font-medium transition-colors box-border"
       />
       {errors[key] && <p className="text-xs text-red-500 mt-1">{errors[key]}</p>}
     </div>
@@ -234,22 +234,27 @@ function PrepareRFQModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl rounded-2xl bg-card border border-border shadow-2xl p-6 my-8"
+        className="relative w-full rounded-2xl bg-card border border-border shadow-2xl flex flex-col my-auto"
+        style={{
+          width: "calc(100vw - 32px)",
+          maxWidth: "820px",
+          maxHeight: "90vh",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border pb-4 mb-5">
+        <div className="flex items-center justify-between border-b border-border px-4 sm:px-6 py-4 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-teal-50 text-teal-600">
               <FileCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">Prepare RFQ</h2>
-              <p className="text-xs text-muted-foreground">Specify commercial terms and submit quotation</p>
+              <h2 className="text-[18px] font-bold text-foreground leading-snug">Prepare RFQ</h2>
+              <p className="text-[13px] text-muted-foreground leading-tight">Specify commercial terms and submit quotation</p>
             </div>
           </div>
           <button
@@ -261,93 +266,97 @@ function PrepareRFQModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Amount */}
-            <div>
-              <label className="block text-xs font-semibold text-foreground uppercase tracking-wider mb-1">
-                Amount <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number" min="0" step="0.01" placeholder="0.00"
-                value={formData.amount || ""}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border focus:border-primary outline-none text-sm font-medium"
-              />
-              {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount}</p>}
+        {/* Scrollable Body */}
+        <div className="overflow-y-auto flex-1 px-4 sm:px-6 py-4 sm:py-6">
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
+              {/* Amount */}
+              <div>
+                <label className="block text-[13px] font-semibold leading-[18px] text-foreground mb-[6px]">
+                  Amount <span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <input
+                  type="number" min="0" step="0.01" placeholder="0.00"
+                  value={formData.amount || ""}
+                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                  className="w-full h-[44px] min-h-[44px] px-[14px] rounded-[10px] bg-secondary/50 border border-border focus:border-primary outline-none text-sm font-medium transition-colors box-border"
+                />
+                {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount}</p>}
+              </div>
+
+              {/* Currency */}
+              <div>
+                <label className="block text-[13px] font-semibold leading-[18px] text-foreground mb-[6px]">
+                  Currency <span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  className="w-full h-[44px] min-h-[44px] px-[14px] rounded-[10px] bg-secondary/50 border border-border focus:border-primary outline-none text-sm font-medium transition-colors box-border"
+                >
+                  <option value="GBP">GBP (£)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+                {errors.currency && <p className="text-xs text-red-500 mt-1">{errors.currency}</p>}
+              </div>
+
+              {/* Estimated Duration */}
+              <div>
+                <label className="block text-[13px] font-semibold leading-[18px] text-foreground mb-[6px]">
+                  Estimated Duration <span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <select
+                  value={formData.estimatedDuration}
+                  onChange={(e) => setFormData({ ...formData, estimatedDuration: e.target.value })}
+                  className="w-full h-[44px] min-h-[44px] px-[14px] rounded-[10px] bg-secondary/50 border border-border focus:border-primary outline-none text-sm font-medium transition-colors box-border"
+                >
+                  <option value="1 Day">1 Day</option>
+                  <option value="2 Days">2 Days</option>
+                  <option value="3 Days">3 Days</option>
+                  <option value="1 Week">1 Week</option>
+                  <option value="2 Weeks">2 Weeks</option>
+                </select>
+                {errors.estimatedDuration && <p className="text-xs text-red-500 mt-1">{errors.estimatedDuration}</p>}
+              </div>
+
+              {field("Hourly Rate", "hourlyRate")}
+              {field("Labour Cost", "labourCost")}
+              {field("Material Cost", "materialCost")}
+              {field("Service Charge", "serviceCharge")}
+              {field("Tax", "tax")}
+              {field("Discount", "discount", false, true)}
+
+              {/* Remarks */}
+              <div className="md:col-span-2">
+                <label className="block text-[13px] font-semibold leading-[18px] text-foreground mb-[6px]">Remarks</label>
+                <textarea
+                  rows={3}
+                  placeholder="Add notes, scope details, or conditions for the client..."
+                  value={formData.remarks || ""}
+                  onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                  className="w-full p-[12px] px-[14px] rounded-[10px] bg-secondary/50 border border-border focus:border-primary outline-none text-sm resize-y min-h-[100px] max-h-[140px] transition-colors box-border"
+                />
+              </div>
             </div>
 
-            {/* Currency */}
-            <div>
-              <label className="block text-xs font-semibold text-foreground uppercase tracking-wider mb-1">
-                Currency <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border focus:border-primary outline-none text-sm font-medium"
+            {/* Footer Actions */}
+            <div className="flex items-center justify-end gap-3 pt-4 mt-5 border-t border-border">
+              <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending} className="h-[42px] px-4 text-sm rounded-lg">Cancel</Button>
+              <Button
+                type="submit"
+                disabled={mutation.isPending}
+                className="h-[42px] px-5 text-sm rounded-lg bg-teal-700 hover:bg-teal-800 text-white min-w-[120px] flex items-center justify-center gap-2 font-medium"
               >
-                <option value="GBP">GBP (£)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
-              {errors.currency && <p className="text-xs text-red-500 mt-1">{errors.currency}</p>}
+                {mutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /><span>Submitting...</span></>
+                ) : (
+                  <><Send className="w-4 h-4" /><span>Submit RFQ</span></>
+                )}
+              </Button>
             </div>
-
-            {/* Estimated Duration */}
-            <div>
-              <label className="block text-xs font-semibold text-foreground uppercase tracking-wider mb-1">
-                Estimated Duration <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.estimatedDuration}
-                onChange={(e) => setFormData({ ...formData, estimatedDuration: e.target.value })}
-                className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border focus:border-primary outline-none text-sm font-medium"
-              >
-                <option value="1 Day">1 Day</option>
-                <option value="2 Days">2 Days</option>
-                <option value="3 Days">3 Days</option>
-                <option value="1 Week">1 Week</option>
-                <option value="2 Weeks">2 Weeks</option>
-              </select>
-              {errors.estimatedDuration && <p className="text-xs text-red-500 mt-1">{errors.estimatedDuration}</p>}
-            </div>
-
-            {field("Hourly Rate", "hourlyRate")}
-            {field("Labour Cost", "labourCost")}
-            {field("Material Cost", "materialCost")}
-            {field("Service Charge", "serviceCharge")}
-            {field("Tax", "tax")}
-            {field("Discount", "discount", false, true)}
-
-            {/* Remarks */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-foreground uppercase tracking-wider mb-1">Remarks</label>
-              <textarea
-                rows={3}
-                placeholder="Add notes, scope details, or conditions for the client..."
-                value={formData.remarks || ""}
-                onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                className="w-full p-3 rounded-lg bg-secondary/50 border border-border focus:border-primary outline-none text-sm resize-none"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-            <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>Cancel</Button>
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              className="bg-teal-700 hover:bg-teal-800 text-white min-w-[130px] flex items-center justify-center gap-2"
-            >
-              {mutation.isPending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /><span>Submitting...</span></>
-              ) : (
-                <><Send className="w-4 h-4" /><span>Submit RFQ</span></>
-              )}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

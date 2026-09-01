@@ -23,23 +23,37 @@ import {
   Film,
   Image as ImageIcon,
 } from "lucide-react";
-import { getAttachmentUrl, getAttachmentType, type AttachmentType } from "@/lib/api";
+import { getAttachmentUrl, getAttachmentType, getMediaUrl, type AttachmentType } from "@/lib/api";
 
 interface AttachmentItemProps {
-  attachment: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string; name?: string; type?: string };
+  attachment: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string; name?: string; type?: string; resource_type?: string; format?: string };
   index: number;
 }
 
 export function AttachmentItem({ attachment, index }: AttachmentItemProps) {
+  // Safe diagnostic log during development (does not log secrets)
+  console.log("[Attachment Diagnostic]", {
+    index,
+    type: typeof attachment,
+    keys: attachment && typeof attachment === "object" ? Object.keys(attachment) : null,
+    resource_type: attachment && typeof attachment === "object" ? (attachment as any).resource_type : null,
+    format: attachment && typeof attachment === "object" ? (attachment as any).format : null,
+  });
+
   const fullUrl = getAttachmentUrl(attachment);
   const fileType: AttachmentType = getAttachmentType(attachment);
 
   const [hasError, setHasError] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  // Extract display filename if available
-  const rawUrl = typeof attachment === "string" ? attachment : (attachment?.url || attachment?.fileUrl || "");
-  const fileName = rawUrl ? rawUrl.split("/").pop()?.split("?")[0] : `Attachment ${index + 1}`;
+  // Extract display filename safely using getMediaUrl (never calls .split() on a non-string)
+  const mediaUrl = getMediaUrl(attachment);
+  const fileName =
+    typeof mediaUrl === "string"
+      ? (mediaUrl.split("/").pop()?.split("?")[0] ?? `Attachment ${index + 1}`)
+      : `Attachment ${index + 1}`;
+
+  if (!fullUrl) return null;
 
   return (
     <>
