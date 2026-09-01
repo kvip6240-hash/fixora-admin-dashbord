@@ -72,45 +72,21 @@ export function AppShell({
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="h-16 flex items-center gap-2.5 px-4 border-b border-sidebar-border">
-          {/* Fixora Brand Logo Mark — teal/blue stylized F */}
-          <svg className="w-9 h-9 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Fixora F Lettermark — clean geometric */}
+          <svg className="w-9 h-9 shrink-0" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="fg-teal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2EDBA8" />
-                <stop offset="100%" stopColor="#1CB88D" />
-              </linearGradient>
-              <linearGradient id="fg-blue" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#3B82F6" />
+              <linearGradient id="fix-grad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+                <stop offset="0%" stopColor="#34D399" />
+                <stop offset="50%" stopColor="#3B82F6" />
                 <stop offset="100%" stopColor="#1D4ED8" />
               </linearGradient>
             </defs>
-            {/* Top teal curved arc of the F */}
-            <path
-              d="M 50 8
-                 C 30 8, 14 22, 12 40
-                 C 11 50, 15 56, 22 58
-                 C 28 60, 34 56, 36 50
-                 C 38 44, 36 38, 40 34
-                 C 44 30, 52 30, 58 34
-                 C 64 38, 66 46, 62 52
-                 C 58 58, 50 60, 44 58"
-              stroke="url(#fg-teal)"
-              strokeWidth="10"
-              strokeLinecap="round"
-              fill="none"
-            />
-            {/* Bottom blue curved stem of the F */}
-            <path
-              d="M 44 58
-                 C 36 56, 28 60, 24 68
-                 C 20 76, 24 86, 34 90
-                 C 44 94, 56 88, 60 78
-                 C 64 68, 58 56, 50 52"
-              stroke="url(#fg-blue)"
-              strokeWidth="10"
-              strokeLinecap="round"
-              fill="none"
-            />
+            {/* Vertical stem */}
+            <rect x="10" y="8" width="14" height="64" rx="5" fill="url(#fix-grad)" />
+            {/* Top horizontal bar */}
+            <rect x="10" y="8" width="52" height="14" rx="5" fill="url(#fix-grad)" />
+            {/* Middle horizontal bar */}
+            <rect x="10" y="33" width="38" height="13" rx="5" fill="url(#fix-grad)" />
           </svg>
 
           {/* Vertical Line Divider */}
