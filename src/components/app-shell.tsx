@@ -71,35 +71,45 @@ export function AppShell({
       <Toaster position="top-right" richColors closeButton />
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
-        <div className="h-16 flex items-center gap-3 px-4 border-b border-sidebar-border">
-          {/* Fixora Cyan-to-Blue Gradient Logo Icon */}
-          <svg className="w-[34px] h-[34px] shrink-0" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="fixora-gradient-mark" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00D2FF" />
-                <stop offset="50%" stopColor="#0088FF" />
-                <stop offset="100%" stopColor="#0052D4" />
-              </linearGradient>
-            </defs>
-            {/* Geometric F logo mark */}
-            <path
-              d="M 6 4 C 4.895 4 4 4.895 4 6 L 4 34 C 4 35.105 4.895 36 6 36 L 12 36 C 13.105 36 14 35.105 14 34 L 14 24 L 28 C 29.105 24 30 23.105 30 22 L 30 17 C 30 15.895 29.105 15 28 15 L 14 15 L 14 11 L 34 C 35.105 11 36 10.105 36 9 L 36 6 C 36 4.895 35.105 4 34 4 L 6 4 Z"
-              fill="url(#fixora-gradient-mark)"
-            />
-            <path
-              d="M 14 15 L 26 15 C 27.105 15 28 14.105 28 13 L 28 11 L 14 11 L 14 15 Z"
-              fill="#00E5FF"
-              opacity="0.9"
-            />
-          </svg>
+        <div className="h-16 flex items-center gap-2.5 px-4 border-b border-sidebar-border">
+          {/* Dark Navy Circle with Orange/Gold + White Stylized F Logo */}
+          <div className="w-10 h-10 rounded-full bg-[#0A1224] flex items-center justify-center shrink-0 shadow-md">
+            <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="fixora-orange-wing" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FBBF24" />
+                  <stop offset="50%" stopColor="#F97316" />
+                  <stop offset="100%" stopColor="#EA580C" />
+                </linearGradient>
+                <linearGradient id="fixora-white-stem" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FFFFFF" />
+                  <stop offset="100%" stopColor="#E2E8F0" />
+                </linearGradient>
+              </defs>
+              {/* Upper orange/gold slanted wing */}
+              <path
+                d="M 12 6 H 24.5 C 26 6 27 7.2 26.2 8.5 L 24 12 C 23.6 12.7 22.8 13 22 13 H 15.5 L 14 15.5 H 20.5 C 21.5 15.5 22.3 16.1 22 17.1 L 21 19.8 C 20.7 20.7 19.8 21.3 18.8 21.3 H 12.5 L 8 21.3 L 12 6 Z"
+                fill="url(#fixora-orange-wing)"
+              />
+              {/* Lower white curved stem */}
+              <path
+                d="M 5 25.5 C 4.5 26.3 5.1 27.3 6 27.3 H 9.5 L 12.8 19.5 H 18.5 C 19.5 19.5 20.3 18.9 20.6 18 L 21.4 15.5 H 15 L 16.5 12 H 21.5 C 22.5 12 23.3 11.4 23.7 10.5 L 25.2 7.8 C 25.7 6.8 25 5.5 23.8 5.5 H 12 C 10.8 5.5 9.8 6.3 9.4 7.5 L 4.8 21.8 C 4.4 23 4.2 24.3 5 25.5 Z"
+                fill="url(#fixora-white-stem)"
+              />
+            </svg>
+          </div>
 
-          <div className="leading-tight">
-            <div className="text-[20px] font-bold text-[#0F172A] dark:text-white tracking-[0.5px] uppercase">
+          {/* Vertical Line Divider */}
+          <div className="w-[1px] h-7 bg-slate-200 dark:bg-slate-700/80 mx-1 shrink-0" />
+
+          {/* Branding Text */}
+          <div className="flex flex-col justify-center">
+            <span className="text-[19px] font-extrabold text-[#0F172A] dark:text-white tracking-[0.5px] uppercase leading-none mb-1 font-sans">
               FIXORA
-            </div>
-            <div className="text-[13px] font-medium text-[#64748B] dark:text-slate-400 tracking-[0.5px]">
+            </span>
+            <span className="text-[13px] font-normal text-[#5A6A85] dark:text-slate-400 tracking-[0.2px] leading-none">
               Admin Console
-            </div>
+            </span>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
