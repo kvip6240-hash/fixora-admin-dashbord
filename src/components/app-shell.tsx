@@ -71,13 +71,35 @@ export function AppShell({
       <Toaster position="top-right" richColors closeButton />
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
-        <div className="h-16 flex items-center gap-2.5 px-5 border-b border-sidebar-border">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
-            Q
-          </div>
+        <div className="h-16 flex items-center gap-3 px-4 border-b border-sidebar-border">
+          {/* Fixora Cyan-to-Blue Gradient Logo Icon */}
+          <svg className="w-[34px] h-[34px] shrink-0" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="fixora-gradient-mark" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#00D2FF" />
+                <stop offset="50%" stopColor="#0088FF" />
+                <stop offset="100%" stopColor="#0052D4" />
+              </linearGradient>
+            </defs>
+            {/* Geometric F logo mark */}
+            <path
+              d="M 6 4 C 4.895 4 4 4.895 4 6 L 4 34 C 4 35.105 4.895 36 6 36 L 12 36 C 13.105 36 14 35.105 14 34 L 14 24 L 28 C 29.105 24 30 23.105 30 22 L 30 17 C 30 15.895 29.105 15 28 15 L 14 15 L 14 11 L 34 C 35.105 11 36 10.105 36 9 L 36 6 C 36 4.895 35.105 4 34 4 L 6 4 Z"
+              fill="url(#fixora-gradient-mark)"
+            />
+            <path
+              d="M 14 15 L 26 15 C 27.105 15 28 14.105 28 13 L 28 11 L 14 11 L 14 15 Z"
+              fill="#00E5FF"
+              opacity="0.9"
+            />
+          </svg>
+
           <div className="leading-tight">
-            <div className="text-sm font-semibold text-sidebar-foreground">Fixora</div>
-            <div className="text-[11px] text-muted-foreground">Admin Console</div>
+            <div className="text-[20px] font-bold text-[#0F172A] dark:text-white tracking-[0.5px] uppercase">
+              FIXORA
+            </div>
+            <div className="text-[13px] font-medium text-[#64748B] dark:text-slate-400 tracking-[0.5px]">
+              Admin Console
+            </div>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
