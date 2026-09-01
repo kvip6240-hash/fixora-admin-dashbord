@@ -5,12 +5,9 @@ import { useSupportController } from "../hooks/useSupportController";
 export const Route = createFileRoute("/support")({
   head: () => ({
     meta: [
-      { title: "Support — Quotalink" },
-      {
-        name: "description",
-        content: "Support tickets from requesters and providers across the marketplace.",
-      },
-      { property: "og:title", content: "Support — Quotalink" },
+      { title: "Support — Fixora Admin" },
+      { name: "description", content: "Fixora Admin Dashboard support." },
+      { property: "og:title", content: "Support — Fixora Admin" },
       {
         property: "og:description",
         content: "Support tickets from requesters and providers across the marketplace.",

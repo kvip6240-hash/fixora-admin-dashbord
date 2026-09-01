@@ -76,8 +76,8 @@ export function AppShell({
             Q
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold text-sidebar-foreground">Quotalink</div>
-            <div className="text-[11px] text-muted-foreground">Enterprise Console</div>
+            <div className="text-sm font-semibold text-sidebar-foreground">Fixora</div>
+            <div className="text-[11px] text-muted-foreground">Admin Console</div>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
