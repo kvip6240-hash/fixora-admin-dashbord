@@ -100,7 +100,6 @@ function Dashboard() {
       {
         title: "Total Users",
         value: totalUsers,
-        change: "+12.5%",
         isPositive: true,
         icon: Users,
         iconBg: "bg-blue-50",
@@ -110,7 +109,6 @@ function Dashboard() {
       {
         title: "Service Providers",
         value: totalProviders,
-        change: "+8.2%",
         isPositive: true,
         icon: Briefcase,
         iconBg: "bg-indigo-50",
@@ -120,7 +118,6 @@ function Dashboard() {
       {
         title: "Active Bookings",
         value: activeCount,
-        change: "+5.4%",
         isPositive: true,
         icon: CalendarCheck,
         iconBg: "bg-emerald-50",
@@ -130,7 +127,6 @@ function Dashboard() {
       {
         title: "Pending Bookings",
         value: pendingCount,
-        change: "-2.1%",
         isPositive: false,
         icon: Clock,
         iconBg: "bg-amber-50",
@@ -140,7 +136,6 @@ function Dashboard() {
       {
         title: "Completed Services",
         value: "18,940",
-        change: "+14.8%",
         isPositive: true,
         icon: CheckCircle2,
         iconBg: "bg-teal-50",

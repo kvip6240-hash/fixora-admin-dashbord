@@ -20,15 +20,15 @@ const nav: Array<{
   icon: typeof LayoutDashboard;
   exact?: boolean;
 }> = [
-  { label: "Dashboard", to: "/", icon: LayoutDashboard, exact: true },
-  { label: "RFQ Management", to: "/rfq", icon: FileText },
-  { label: "Projects", to: "/projects", icon: Briefcase },
-  { label: "Payments", to: "/payments", icon: Wallet },
-  { label: "Companies", to: "/companies", icon: Building2 },
-  { label: "Reports & Analytics", to: "/reports", icon: BarChart3 },
-  { label: "Support", to: "/support", icon: LifeBuoy },
-  { label: "Settings", to: "/settings", icon: Settings },
-];
+    { label: "Dashboard", to: "/", icon: LayoutDashboard, exact: true },
+    { label: "RFQ Management", to: "/rfq", icon: FileText },
+    { label: "Projects", to: "/projects", icon: Briefcase },
+    { label: "Payments", to: "/payments", icon: Wallet },
+    { label: "Companies", to: "/companies", icon: Building2 },
+    { label: "Reports & Analytics", to: "/reports", icon: BarChart3 },
+    { label: "Support", to: "/support", icon: LifeBuoy },
+    { label: "Settings", to: "/settings", icon: Settings },
+  ];
 
 export function AppShell({
   title,
@@ -72,42 +72,56 @@ export function AppShell({
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="h-16 flex items-center gap-2.5 px-4 border-b border-sidebar-border">
-          {/* Dark Navy Circle with Orange/Gold + White Stylized F Logo */}
-          <div className="w-10 h-10 rounded-full bg-[#0A1224] flex items-center justify-center shrink-0 shadow-md">
-            <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="fixora-orange-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FBBF24" />
-                  <stop offset="50%" stopColor="#F97316" />
-                  <stop offset="100%" stopColor="#EA580C" />
-                </linearGradient>
-                <linearGradient id="fixora-white-stem" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FFFFFF" />
-                  <stop offset="100%" stopColor="#E2E8F0" />
-                </linearGradient>
-              </defs>
-              {/* Upper orange/gold slanted wing */}
-              <path
-                d="M 12 6 H 24.5 C 26 6 27 7.2 26.2 8.5 L 24 12 C 23.6 12.7 22.8 13 22 13 H 15.5 L 14 15.5 H 20.5 C 21.5 15.5 22.3 16.1 22 17.1 L 21 19.8 C 20.7 20.7 19.8 21.3 18.8 21.3 H 12.5 L 8 21.3 L 12 6 Z"
-                fill="url(#fixora-orange-wing)"
-              />
-              {/* Lower white curved stem */}
-              <path
-                d="M 5 25.5 C 4.5 26.3 5.1 27.3 6 27.3 H 9.5 L 12.8 19.5 H 18.5 C 19.5 19.5 20.3 18.9 20.6 18 L 21.4 15.5 H 15 L 16.5 12 H 21.5 C 22.5 12 23.3 11.4 23.7 10.5 L 25.2 7.8 C 25.7 6.8 25 5.5 23.8 5.5 H 12 C 10.8 5.5 9.8 6.3 9.4 7.5 L 4.8 21.8 C 4.4 23 4.2 24.3 5 25.5 Z"
-                fill="url(#fixora-white-stem)"
-              />
-            </svg>
-          </div>
+          {/* Fixora Brand Logo Mark — teal/blue stylized F */}
+          <svg className="w-9 h-9 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="fg-teal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#2EDBA8" />
+                <stop offset="100%" stopColor="#1CB88D" />
+              </linearGradient>
+              <linearGradient id="fg-blue" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#3B82F6" />
+                <stop offset="100%" stopColor="#1D4ED8" />
+              </linearGradient>
+            </defs>
+            {/* Top teal curved arc of the F */}
+            <path
+              d="M 50 8
+                 C 30 8, 14 22, 12 40
+                 C 11 50, 15 56, 22 58
+                 C 28 60, 34 56, 36 50
+                 C 38 44, 36 38, 40 34
+                 C 44 30, 52 30, 58 34
+                 C 64 38, 66 46, 62 52
+                 C 58 58, 50 60, 44 58"
+              stroke="url(#fg-teal)"
+              strokeWidth="10"
+              strokeLinecap="round"
+              fill="none"
+            />
+            {/* Bottom blue curved stem of the F */}
+            <path
+              d="M 44 58
+                 C 36 56, 28 60, 24 68
+                 C 20 76, 24 86, 34 90
+                 C 44 94, 56 88, 60 78
+                 C 64 68, 58 56, 50 52"
+              stroke="url(#fg-blue)"
+              strokeWidth="10"
+              strokeLinecap="round"
+              fill="none"
+            />
+          </svg>
 
           {/* Vertical Line Divider */}
-          <div className="w-[1px] h-7 bg-slate-200 dark:bg-slate-700/80 mx-1 shrink-0" />
+          <div className="w-[1px] h-7 bg-slate-200 dark:bg-slate-700/60 shrink-0" />
 
           {/* Branding Text */}
           <div className="flex flex-col justify-center">
-            <span className="text-[19px] font-extrabold text-[#0F172A] dark:text-white tracking-[0.5px] uppercase leading-none mb-1 font-sans">
+            <span className="text-[18px] font-extrabold text-[#0F172A] dark:text-white tracking-[0.4px] leading-none">
               FIXORA
             </span>
-            <span className="text-[13px] font-normal text-[#5A6A85] dark:text-slate-400 tracking-[0.2px] leading-none">
+            <span className="text-[12px] font-normal text-[#64748B] dark:text-slate-400 tracking-[0.2px] leading-none mt-1">
               Admin Console
             </span>
           </div>
