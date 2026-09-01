@@ -1,13 +1,12 @@
 import { ElementType } from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
 import { Card } from "@/components/app-shell";
 import { Link } from "@tanstack/react-router";
 
 export interface SummaryCardProps {
   title: string;
   value: string | number;
-  change: string;
-  isPositive: boolean;
+  change?: string;
+  isPositive?: boolean;
   icon: ElementType;
   iconBg: string;
   iconColor: string;
@@ -17,8 +16,6 @@ export interface SummaryCardProps {
 export function SummaryCard({
   title,
   value,
-  change,
-  isPositive,
   icon: Icon,
   iconBg,
   iconColor,
@@ -33,20 +30,6 @@ export function SummaryCard({
           className={`w-10 h-10 rounded-xl grid place-items-center ${iconBg} ${iconColor} transition-transform duration-200 hover:scale-105`}
         >
           <Icon className="w-5 h-5" />
-        </div>
-        <div
-          className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-            isPositive
-              ? "bg-[oklch(0.95_0.05_150)] text-[#10B981]"
-              : "bg-[oklch(0.95_0.05_25)] text-[#EF4444]"
-          }`}
-        >
-          {isPositive ? (
-            <TrendingUp className="w-3 h-3 text-[#10B981]" />
-          ) : (
-            <TrendingDown className="w-3 h-3 text-[#EF4444]" />
-          )}
-          <span>{change}</span>
         </div>
       </div>
       <div className="mt-4">
@@ -66,4 +49,3 @@ export function SummaryCard({
 
   return content;
 }
-
