@@ -14,32 +14,42 @@ export type AttachmentType = "image" | "video" | "pdf" | "document" | "other";
 /**
  * Safe helper to extract and normalize media URL from multiple potential API shapes.
  * Returns a trimmed string URL if successful, otherwise null.
+ * Preserves the exact Cloudinary URL (whether image, video, or raw document).
  */
 export function getMediaUrl(
-  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string } | null,
+  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string; link?: string; src?: string } | null,
 ): string | null {
   if (!attachment) return null;
 
   if (typeof attachment === "string") {
-    return attachment.trim();
+    const trimmed = attachment.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
 
   if (typeof attachment === "object" && !Array.isArray(attachment)) {
     const secureUrl = attachment.secure_url;
-    if (typeof secureUrl === "string") {
+    if (typeof secureUrl === "string" && secureUrl.trim()) {
       return secureUrl.trim();
     }
     const url = attachment.url;
-    if (typeof url === "string") {
+    if (typeof url === "string" && url.trim()) {
       return url.trim();
     }
-    const fileUrl = attachment.fileUrl;
-    if (typeof fileUrl === "string") {
+    const fileUrl = (attachment as any).fileUrl;
+    if (typeof fileUrl === "string" && fileUrl.trim()) {
       return fileUrl.trim();
     }
-    const path = attachment.path;
-    if (typeof path === "string") {
+    const path = (attachment as any).path;
+    if (typeof path === "string" && path.trim()) {
       return path.trim();
+    }
+    const link = (attachment as any).link;
+    if (typeof link === "string" && link.trim()) {
+      return link.trim();
+    }
+    const src = (attachment as any).src;
+    if (typeof src === "string" && src.trim()) {
+      return src.trim();
     }
   }
 
@@ -47,85 +57,12 @@ export function getMediaUrl(
 }
 
 /**
- * Safely determines if the media attachment is a video.
- */
-export function isVideo(
-  attachment: any,
-  mediaUrl: string | null,
-): boolean {
-  if (!mediaUrl) return false;
-
-  if (attachment && typeof attachment === "object" && !Array.isArray(attachment)) {
-    if (attachment.resource_type === "video") {
-      return true;
-    }
-    const mimeType = attachment.mimeType;
-    if (typeof mimeType === "string" && mimeType.toLowerCase().trim().startsWith("video/")) {
-      return true;
-    }
-    const format = attachment.format;
-    if (typeof format === "string") {
-      const lowerFormat = format.toLowerCase().trim();
-      if (["mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp", "ogv", "flv", "wmv"].includes(lowerFormat)) {
-        return true;
-      }
-    }
-  }
-
-  const urlLower = mediaUrl.toLowerCase();
-  if (urlLower.includes("/video/upload/") || urlLower.includes("/video/")) {
-    return true;
-  }
-  if (/\.(mp4|mov|avi|webm|mkv|m4v|3gp|ogv|flv|wmv)(\?.*)?$/i.test(urlLower)) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Safely determines if the media attachment is an image.
- */
-export function isImage(
-  attachment: any,
-  mediaUrl: string | null,
-): boolean {
-  if (!mediaUrl) return false;
-
-  if (attachment && typeof attachment === "object" && !Array.isArray(attachment)) {
-    if (attachment.resource_type === "image") {
-      return true;
-    }
-    const mimeType = attachment.mimeType;
-    if (typeof mimeType === "string" && mimeType.toLowerCase().trim().startsWith("image/")) {
-      return true;
-    }
-    const format = attachment.format;
-    if (typeof format === "string") {
-      const lowerFormat = format.toLowerCase().trim();
-      if (["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "ico", "tiff", "heic", "avif"].includes(lowerFormat)) {
-        return true;
-      }
-    }
-  }
-
-  const urlLower = mediaUrl.toLowerCase();
-  if (urlLower.includes("/image/upload/") || urlLower.includes("/image/")) {
-    return true;
-  }
-  if (/\.(jpg|jpeg|png|webp|gif|svg|bmp|ico|tiff|heic|avif)(\?.*)?$/i.test(urlLower)) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
  * Prepend backend BASE_URL if the URL is a relative path (e.g. /uploads/file.pdf).
- * Preserves Cloudinary HTTPS URLs intact and upgrades http:// Cloudinary URLs.
+ * Preserves Cloudinary HTTPS URLs intact and upgrades http:// Cloudinary URLs to https://.
+ * Never alters Cloudinary resource paths (/video/upload/, /raw/upload/, etc.).
  */
 export function getAttachmentUrl(
-  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string } | null,
+  attachment?: any,
 ): string {
   const rawUrl = getMediaUrl(attachment);
   if (!rawUrl) return "";
@@ -153,6 +90,11 @@ export function getAttachmentUrl(
 
 /**
  * Accurately determines file type for images, videos, PDFs, and documents
+ * Detection Priority:
+ * 1. resource_type (Cloudinary: image | video | raw)
+ * 2. mime_type / mimeType (e.g. video/mp4, application/pdf)
+ * 3. format (e.g. mp4, pdf, png)
+ * 4. File extension from URL or original filename/public_id
  */
 export function getAttachmentType(
   attachment?: any,
@@ -160,62 +102,97 @@ export function getAttachmentType(
   if (!attachment) return "other";
 
   const mediaUrl = getMediaUrl(attachment);
-  if (!mediaUrl) return "other";
+  const getExt = (str?: string | null): string => {
+    if (!str || typeof str !== "string") return "";
+    const clean = str.split("?")[0].split("#")[0];
+    const parts = clean.split(".");
+    return parts.length > 1 ? parts.pop()!.toLowerCase().trim() : "";
+  };
 
-  // Check object metadata if present
+  const fileName = typeof attachment === "object" && attachment !== null
+    ? String((attachment as any).original_filename || (attachment as any).name || (attachment as any).public_id || "")
+    : "";
+
+  let resourceType = "";
+  let mimeType = "";
+  let format = "";
+  let typeProp = "";
+
   if (attachment && typeof attachment === "object" && !Array.isArray(attachment)) {
-    if (attachment.type === "video" || attachment.resource_type === "video") {
-      return "video";
-    }
-    if (attachment.type === "image" || attachment.resource_type === "image") {
-      return "image";
-    }
-    if (attachment.type === "pdf") {
-      return "pdf";
-    }
-
-    const mimeType = attachment.mimeType;
-    if (typeof mimeType === "string") {
-      const mimeLower = mimeType.toLowerCase().trim();
-      if (mimeLower.startsWith("video/")) return "video";
-      if (mimeLower.startsWith("image/")) return "image";
-      if (mimeLower === "application/pdf") return "pdf";
-    }
-
-    const format = attachment.format;
-    if (typeof format === "string") {
-      const formatLower = format.toLowerCase().trim();
-      if (["mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp", "ogv", "flv", "wmv"].includes(formatLower)) {
-        return "video";
-      }
-      if (["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "ico", "tiff", "heic", "avif"].includes(formatLower)) {
-        return "image";
-      }
-      if (formatLower === "pdf") return "pdf";
-    }
+    resourceType = String(attachment.resource_type || "").toLowerCase().trim();
+    mimeType = String(attachment.mime_type || attachment.mimeType || "").toLowerCase().trim();
+    format = String(attachment.format || "").toLowerCase().trim();
+    typeProp = String(attachment.type || "").toLowerCase().trim();
   }
 
-  // Fallback to URL and content pattern checks
-  if (isVideo(attachment, mediaUrl)) {
-    return "video";
-  }
-  if (isImage(attachment, mediaUrl)) {
-    return "image";
-  }
+  const videoFormats = ["mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp", "ogv", "flv", "wmv"];
+  const imageFormats = ["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "ico", "tiff", "heic", "avif"];
+  const docFormats = ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "rtf", "csv"];
 
-  const urlLower = mediaUrl.toLowerCase();
-
-  // PDF
-  if (/\.pdf(\?.*)?$/i.test(urlLower)) {
+  // 1. Check resource_type
+  if (resourceType === "video" || typeProp === "video") return "video";
+  if (resourceType === "image" || typeProp === "image") return "image";
+  if (resourceType === "raw" && (format === "pdf" || mimeType === "application/pdf" || getExt(mediaUrl) === "pdf" || getExt(fileName) === "pdf")) {
     return "pdf";
   }
 
-  // Document extensions
-  if (/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv)(\?.*)?$/i.test(urlLower)) {
-    return "document";
+  // 2. Check mime_type
+  if (mimeType.startsWith("video/")) return "video";
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType === "application/pdf") return "pdf";
+  if (mimeType.startsWith("text/") || mimeType.includes("document") || mimeType.includes("sheet")) return "document";
+
+  // 3. Check format
+  if (format === "pdf" || typeProp === "pdf") return "pdf";
+  if (videoFormats.includes(format)) return "video";
+  if (imageFormats.includes(format)) return "image";
+  if (docFormats.includes(format)) return "document";
+
+  // 4. Check URL patterns & extension
+  const ext = getExt(mediaUrl) || getExt(fileName);
+  if (ext === "pdf") return "pdf";
+  if (videoFormats.includes(ext)) return "video";
+  if (imageFormats.includes(ext)) return "image";
+  if (docFormats.includes(ext)) return "document";
+
+  if (mediaUrl) {
+    const urlLower = mediaUrl.toLowerCase();
+    if (urlLower.includes("/video/upload/") || urlLower.includes("/video/")) return "video";
+    if (urlLower.includes("/image/upload/") || urlLower.includes("/image/")) return "image";
+    if (urlLower.includes("/raw/upload/") && urlLower.includes(".pdf")) return "pdf";
   }
 
   return "other";
+}
+
+/**
+ * Safely determines if the media attachment is a video.
+ */
+export function isVideo(
+  attachment: any,
+  mediaUrl?: string | null,
+): boolean {
+  return getAttachmentType(attachment) === "video";
+}
+
+/**
+ * Safely determines if the media attachment is an image.
+ */
+export function isImage(
+  attachment: any,
+  mediaUrl?: string | null,
+): boolean {
+  return getAttachmentType(attachment) === "image";
+}
+
+/**
+ * Safely determines if the media attachment is a PDF document.
+ */
+export function isPdf(
+  attachment: any,
+  mediaUrl?: string | null,
+): boolean {
+  return getAttachmentType(attachment) === "pdf";
 }
 
 export class ApiError extends Error {
