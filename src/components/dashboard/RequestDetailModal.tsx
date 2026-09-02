@@ -208,6 +208,7 @@ function PrepareRFQModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (mutation.isPending) return;
     const errs: Record<string, string> = {};
     if (!formData.amount || formData.amount <= 0) errs.amount = "Amount must be greater than 0";
     if (!formData.currency) errs.currency = "Currency is required";
@@ -653,7 +654,7 @@ export function RequestDetailModal({
                     variant="outline"
                     disabled={isLoading || rejectMutation.isPending}
                     className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/10 font-semibold px-5 py-2.5 rounded-xl transition-all"
-                    onClick={() => rejectMutation.mutate()}
+                    onClick={() => { if (!rejectMutation.isPending) rejectMutation.mutate(); }}
                   >
                     {rejectMutation.isPending ? (
                       <>
@@ -688,7 +689,7 @@ export function RequestDetailModal({
                 <Button
                   disabled={isLoading || publishMutation.isPending}
                   className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-                  onClick={() => publishMutation.mutate()}
+                  onClick={() => { if (!publishMutation.isPending) publishMutation.mutate(); }}
                 >
                   {publishMutation.isPending ? (
                     <>

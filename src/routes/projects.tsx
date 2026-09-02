@@ -339,6 +339,7 @@ function PrepareRFQModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (prepareMutation.isPending) return;
     const errors: Record<string, string> = {};
 
     if (!formData.amount || formData.amount <= 0) {
@@ -874,7 +875,7 @@ function DetailModal({
                     variant="outline"
                     disabled={rejectMutation.isPending}
                     className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/10 font-semibold px-5 py-2.5 rounded-xl transition-all"
-                    onClick={() => rejectMutation.mutate()}
+                    onClick={() => { if (!rejectMutation.isPending) rejectMutation.mutate(); }}
                   >
                     {rejectMutation.isPending ? (
                       <>
@@ -908,7 +909,7 @@ function DetailModal({
                 <Button
                   disabled={publishMutation.isPending}
                   className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition-all"
-                  onClick={() => publishMutation.mutate()}
+                  onClick={() => { if (!publishMutation.isPending) publishMutation.mutate(); }}
                 >
                   {publishMutation.isPending ? (
                     <>

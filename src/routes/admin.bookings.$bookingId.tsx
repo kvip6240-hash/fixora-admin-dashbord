@@ -174,6 +174,7 @@ function PrepareRFQModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (mutation.isPending) return;
     const errs: Record<string, string> = {};
 
     if (!formData.amount || formData.amount <= 0) {
@@ -644,7 +645,7 @@ function BookingDetailsPage() {
                     variant="outline"
                     size="sm"
                     className="w-full justify-center bg-white text-emerald-600 border-emerald-200 hover:bg-emerald-50 text-xs font-semibold"
-                    onClick={() => updateStatusMutation.mutate("Accepted")}
+                    onClick={() => { if (!updateStatusMutation.isPending) updateStatusMutation.mutate("Accepted"); }}
                     disabled={updateStatusMutation.isPending || booking.status === "Accepted"}
                   >
                     Approve
@@ -653,7 +654,7 @@ function BookingDetailsPage() {
                     variant="outline"
                     size="sm"
                     className="w-full justify-center bg-white text-red-600 border-red-200 hover:bg-red-50 text-xs font-semibold"
-                    onClick={() => updateStatusMutation.mutate("Rejected")}
+                    onClick={() => { if (!updateStatusMutation.isPending) updateStatusMutation.mutate("Rejected"); }}
                     disabled={updateStatusMutation.isPending || booking.status === "Rejected"}
                   >
                     Reject
@@ -662,7 +663,7 @@ function BookingDetailsPage() {
                     variant="outline"
                     size="sm"
                     className="w-full justify-center bg-white text-blue-600 border-blue-200 hover:bg-blue-50 text-xs font-semibold"
-                    onClick={() => updateStatusMutation.mutate("In Progress")}
+                    onClick={() => { if (!updateStatusMutation.isPending) updateStatusMutation.mutate("In Progress"); }}
                     disabled={updateStatusMutation.isPending || booking.status === "In Progress"}
                   >
                     In Progress
@@ -671,7 +672,7 @@ function BookingDetailsPage() {
                     variant="outline"
                     size="sm"
                     className="w-full justify-center bg-white text-teal-600 border-teal-200 hover:bg-teal-50 text-xs font-semibold"
-                    onClick={() => updateStatusMutation.mutate("Completed")}
+                    onClick={() => { if (!updateStatusMutation.isPending) updateStatusMutation.mutate("Completed"); }}
                     disabled={updateStatusMutation.isPending || booking.status === "Completed"}
                   >
                     Complete
@@ -680,7 +681,7 @@ function BookingDetailsPage() {
                     variant="outline"
                     size="sm"
                     className="col-span-2 justify-center bg-white text-slate-600 border-slate-200 hover:bg-slate-50 text-xs font-semibold"
-                    onClick={() => updateStatusMutation.mutate("Cancelled")}
+                    onClick={() => { if (!updateStatusMutation.isPending) updateStatusMutation.mutate("Cancelled"); }}
                     disabled={updateStatusMutation.isPending || booking.status === "Cancelled"}
                   >
                     Cancel Booking
@@ -794,7 +795,7 @@ function BookingDetailsPage() {
           <Button
             disabled={publishMutation.isPending}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-2.5 rounded-lg shadow-sm flex items-center gap-2 transition-colors text-sm"
-            onClick={() => publishMutation.mutate()}
+            onClick={() => { if (!publishMutation.isPending) publishMutation.mutate(); }}
           >
             {publishMutation.isPending ? (
               <>
