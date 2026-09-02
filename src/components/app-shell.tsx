@@ -72,21 +72,18 @@ export function AppShell({
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="h-16 flex items-center gap-2.5 px-4 border-b border-sidebar-border">
-          {/* Fixora F Lettermark — clean geometric */}
-          <svg className="w-9 h-9 shrink-0" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="fix-grad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-                <stop offset="0%" stopColor="#34D399" />
-                <stop offset="50%" stopColor="#3B82F6" />
-                <stop offset="100%" stopColor="#1D4ED8" />
-              </linearGradient>
-            </defs>
-            {/* Vertical stem */}
-            <rect x="10" y="8" width="14" height="64" rx="5" fill="url(#fix-grad)" />
-            {/* Top horizontal bar */}
-            <rect x="10" y="8" width="52" height="14" rx="5" fill="url(#fix-grad)" />
-            {/* Middle horizontal bar */}
-            <rect x="10" y="33" width="38" height="13" rx="5" fill="url(#fix-grad)" />
+          {/* Fixora Brand Mark — dark navy F + teal accents */}
+          <svg className="w-9 h-9 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Dark navy vertical stem */}
+            <rect x="8" y="8" width="20" height="84" rx="4" fill="#0D2240"/>
+            {/* Dark navy top horizontal bar */}
+            <rect x="8" y="8" width="76" height="20" rx="4" fill="#0D2240"/>
+            {/* Dark navy middle horizontal bar stub */}
+            <rect x="8" y="40" width="50" height="18" rx="4" fill="#0D2240"/>
+            {/* Teal top-right accent (parallelogram shape) */}
+            <rect x="52" y="8" width="32" height="20" rx="4" fill="#2DB899"/>
+            {/* Teal middle accent */}
+            <rect x="36" y="40" width="22" height="18" rx="4" fill="#2DB899"/>
           </svg>
 
           {/* Vertical Line Divider */}
@@ -94,7 +91,7 @@ export function AppShell({
 
           {/* Branding Text */}
           <div className="flex flex-col justify-center">
-            <span className="text-[18px] font-extrabold text-[#0F172A] dark:text-white tracking-[0.4px] leading-none">
+            <span className="text-[18px] font-extrabold text-[#0D2240] dark:text-white tracking-[0.4px] leading-none">
               FIXORA
             </span>
             <span className="text-[12px] font-normal text-[#64748B] dark:text-slate-400 tracking-[0.2px] leading-none mt-1">
