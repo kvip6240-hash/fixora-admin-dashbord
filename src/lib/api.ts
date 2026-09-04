@@ -7,7 +7,42 @@
 
 import { toast } from "sonner";
 
-export const BASE_URL = import.meta.env.VITE_API_URL;
+/**
+ * Normalizes backend base URL:
+ * - Strips trailing whitespace and slashes
+ * - Falls back to window.location.origin in browser if empty, or http://localhost:5000 in dev
+ */
+export function getApiBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    return "http://localhost:5000";
+  }
+  return "";
+}
+
+/**
+ * Robustly constructs full API URL preventing double slashes or duplicate /api/api
+ */
+export function buildApiUrl(path: string): string {
+  const base = getApiBaseUrl();
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (!base) return cleanPath;
+
+  if (base.endsWith("/api") && cleanPath.startsWith("/api/")) {
+    return `${base}${cleanPath.slice(4)}`;
+  }
+
+  return `${base}${cleanPath}`;
+}
+
+export const BASE_URL = getApiBaseUrl();
 
 export type AttachmentType = "image" | "video" | "pdf" | "document" | "other";
 
@@ -83,7 +118,7 @@ export function getAttachmentUrl(
   }
 
   // Relative path (e.g. /uploads/...)
-  const base = (BASE_URL || "").replace(/\/+$/, "");
+  const base = getApiBaseUrl();
   const cleanPath = rawUrl.startsWith("/") ? rawUrl : `/${rawUrl}`;
   return `${base}${cleanPath}`;
 }
@@ -217,6 +252,7 @@ function handleAuthError() {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
+  const fullUrl = buildApiUrl(path);
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -230,41 +266,52 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
 
   try {
-    response = await fetch(`${BASE_URL}${path}`, {
+    response = await fetch(fullUrl, {
       ...options,
       headers,
     });
-  } catch {
-    toast.error("Unable to connect to the server. Please check your connection.");
-    throw new ApiError(0, "Network error");
+  } catch (err: any) {
+    const errorDetails =
+      err instanceof TypeError && err.message.includes("Failed to fetch")
+        ? `Cannot connect to backend (${getApiBaseUrl() || "relative URL"}). Check CORS or server status.`
+        : err?.message || "Network error";
+
+    toast.error(`Connection Error: ${errorDetails}`);
+    console.error(`[API Network Error] ${options.method || "GET"} ${fullUrl}:`, err);
+    throw new ApiError(0, errorDetails);
   }
 
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
+    let message = `Request failed with status ${response.status} (${response.statusText})`;
     try {
       const body = await response.json();
       message = body?.message || message;
     } catch {
-      // ignore parse errors
+      // ignore parse errors for HTML/plain text error responses
     }
 
     switch (response.status) {
       case 401:
-        toast.error("Session expired. Please log in again.");
+        toast.error("Session expired or unauthorized. Please log in again.");
         handleAuthError();
         break;
       case 403:
-        toast.error("You do not have permission to perform this action.");
+        toast.error(`Access Forbidden (403): ${message}`);
         break;
       case 404:
-        toast.error("The requested resource was not found.");
+        toast.error(`Not Found (404): ${fullUrl}`);
         break;
       case 409:
         toast.error(message);
         break;
       case 500:
+      case 502:
+      case 503:
+      case 504:
+        toast.error(`Server Error (${response.status}): ${message}`);
+        break;
       default:
-        toast.error("Server error. Please try again later.");
+        toast.error(`Error (${response.status}): ${message}`);
         break;
     }
 
@@ -874,7 +921,8 @@ export async function exportReportFile(
   if (params?.company) query.set("company", params.company);
   if (params?.status) query.set("status", params.status);
 
-  const response = await fetch(`${BASE_URL}/api/admin/reports/export?${query.toString()}`, {
+  const fullUrl = buildApiUrl(`/api/admin/reports/export?${query.toString()}`);
+  const response = await fetch(fullUrl, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },

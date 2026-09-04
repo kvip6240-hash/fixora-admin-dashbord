@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, forwardRef } from "react";
 import { Eye, EyeOff, Loader2, AlertCircle, Building2 } from "lucide-react";
+import { buildApiUrl, getApiBaseUrl } from "@/lib/api";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -104,18 +105,22 @@ function LoginPage() {
     setErrors({});
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
+      const loginUrl = buildApiUrl("/api/admin/login");
+      const response = await fetch(loginUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ email, password }),
+      });
 
-      const data = await response.json();
+      let data: any = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = { message: `Server error (${response.status} ${response.statusText})` };
+      }
+
       setIsLoading(false);
 
       if (response.ok && data.success) {
@@ -123,18 +128,35 @@ function LoginPage() {
         localStorage.setItem("fixora_user", JSON.stringify(data.user));
         navigate({ to: "/" });
       } else {
-        setErrors({ general: data.message || "Invalid email or password" });
+        const errorMsg =
+          data.message ||
+          (response.status === 401
+            ? "Invalid email or password"
+            : `Login failed with status ${response.status} (${response.statusText})`);
+        setErrors({ general: errorMsg });
       }
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
+      console.error("[Login Error]", error);
+
+      let errorMsg = "Unable to connect to the server. Please ensure the backend is running.";
+      if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+        const targetHost = getApiBaseUrl() || window.location.origin;
+        errorMsg = `Cannot reach backend at ${targetHost}. Check server status or CORS settings.`;
+      } else if (error?.name === "AbortError") {
+        errorMsg = "Login request timed out. Please try again.";
+      } else if (error?.message) {
+        errorMsg = `Connection Error: ${error.message}`;
+      }
+
       setErrors({
-        general: "Unable to connect to the server. Please ensure the backend is running.",
+        general: errorMsg,
       });
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-secondary/30">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Dynamic Background Pattern */}
       <div className="fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pointer-events-none" />
 
@@ -150,7 +172,7 @@ function LoginPage() {
           </div>
 
           {/* Login Card */}
-          <div className="bg-card border border-border shadow-2xl shadow-black/5 rounded-2xl overflow-hidden backdrop-blur-xl">
+          <div className="bg-card border border-border shadow-[var(--shadow-elevated)] rounded-2xl overflow-hidden backdrop-blur-xl">
             <div className="p-8">
               {errors.general && (
                 <div className="mb-6 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start gap-2.5">
