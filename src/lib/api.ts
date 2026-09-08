@@ -929,7 +929,11 @@ export async function exportReportFile(
   });
 
   if (!response.ok) {
-    throw new Error("Failed to export report");
+    if (response.status === 401) {
+      toast.error("Session expired. Please log in again.");
+      handleAuthError();
+    }
+    throw new Error(`Failed to export report (${response.status})`);
   }
 
   return response.blob();
