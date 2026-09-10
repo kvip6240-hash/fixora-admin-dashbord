@@ -137,19 +137,19 @@ export function RecentBookingsTable({
         }
       />
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm border-collapse">
-          <thead>
-            <tr className="border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-50/50">
-              <th className="py-3 px-4 rounded-l-lg">Request #</th>
-              <th className="py-3 px-4">Company</th>
-              <th className="py-3 px-4">Service</th>
-              <th className="py-3 px-4">Project Title</th>
-              <th className="py-3 px-4">Priority</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">Submitted Date</th>
-              <th className="py-3 px-4">Time</th>
-              <th className="py-3 px-4 text-right rounded-r-lg">Action</th>
+      <div className="overflow-auto max-h-[540px] border border-slate-100 rounded-lg">
+        <table className="w-full text-left text-sm border-separate border-spacing-0">
+          <thead className="sticky top-0 z-10">
+            <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50">
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Request #</th>
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Company</th>
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Service</th>
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Project Title</th>
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Priority</th>
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Status</th>
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Submitted Date</th>
+              <th className="sticky top-0 z-10 py-3 px-4 bg-slate-50 border-b border-slate-200">Time</th>
+              <th className="sticky top-0 z-10 py-3 px-4 text-right bg-slate-50 border-b border-slate-200">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 font-normal text-slate-700">
@@ -183,27 +183,27 @@ export function RecentBookingsTable({
                     onClick={() => onView?.(b)}
                     className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                   >
-                    <td className="py-3.5 px-4 font-mono text-xs font-semibold text-slate-900">
+                    <td className="py-3.5 px-4 font-mono text-xs font-semibold text-slate-900 border-b border-slate-100">
                       {getRequestNumber(b)}
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-800 max-w-[140px] truncate">
+                    <td className="py-3.5 px-4 font-medium text-slate-800 max-w-[140px] truncate border-b border-slate-100">
                       {getCompanyName(b)}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 max-w-[120px] truncate">
+                    <td className="py-3.5 px-4 text-slate-600 max-w-[120px] truncate border-b border-slate-100">
                       {getCategoryName(b)}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-700 max-w-[180px] truncate font-medium">
+                    <td className="py-3.5 px-4 text-slate-700 max-w-[180px] truncate font-medium border-b border-slate-100">
                       {getProjectTitle(b)}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 border-b border-slate-100">
                       <PriorityPill priority={String(r.priority ?? "—")} />
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 border-b border-slate-100">
                       <StatusPill status={String(r.status ?? "—")} />
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 text-xs whitespace-nowrap">{date}</td>
-                    <td className="py-3.5 px-4 text-slate-400 text-xs whitespace-nowrap">{time}</td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-slate-500 text-xs whitespace-nowrap border-b border-slate-100">{date}</td>
+                    <td className="py-3.5 px-4 text-slate-400 text-xs whitespace-nowrap border-b border-slate-100">{time}</td>
+                    <td className="py-3.5 px-4 text-right border-b border-slate-100">
                       <button
                         onClick={(e) => { e.stopPropagation(); onView?.(b); }}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
