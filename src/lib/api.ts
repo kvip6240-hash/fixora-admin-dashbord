@@ -939,3 +939,45 @@ export async function exportReportFile(
   return response.blob();
 }
 
+export type AdminCsvExport = "bookings" | "rfqs" | "payments";
+
+function getDownloadFilename(contentDisposition: string | null, fallback: string): string {
+  const match = contentDisposition?.match(/filename="?([^";]+)"?/i);
+  return match?.[1] || fallback;
+}
+
+/** Downloads a real, admin-authorized CSV export from the backend. */
+export async function exportAdminCsv(
+  resource: AdminCsvExport,
+): Promise<{ blob: Blob; filename: string }> {
+  const token = getToken();
+  const fullUrl = buildApiUrl(`/api/admin/exports/${resource}?format=csv`);
+
+  let response: Response;
+  try {
+    response = await fetch(fullUrl, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  } catch (err: any) {
+    throw new ApiError(0, err?.message || "Unable to connect to the export service.");
+  }
+
+  if (!response.ok) {
+    let message = `Unable to export ${resource} (${response.status}).`;
+    try {
+      const body = await response.json();
+      message = body?.message || message;
+    } catch {
+      // The backend may return an empty response for an error.
+    }
+
+    if (response.status === 401) handleAuthError();
+    throw new ApiError(response.status, message);
+  }
+
+  return {
+    blob: await response.blob(),
+    filename: getDownloadFilename(response.headers.get("Content-Disposition"), `fixora-${resource}.csv`),
+  };
+}
+

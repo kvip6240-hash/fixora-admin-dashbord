@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, Card, Pill, Button, SectionHeader } from "@/components/app-shell";
 import { ArrowUpRight, Wallet, Receipt, Landmark, Percent } from "lucide-react";
 import { usePaymentsController } from "../hooks/usePaymentsController";
+import { useState } from "react";
+import { toast } from "sonner";
+import { exportAdminCsv } from "@/lib/api";
+import { downloadBlob } from "@/lib/download";
 
 export const Route = createFileRoute("/payments")({
   head: () => ({
@@ -118,15 +122,29 @@ const transactions = [
 
 function Payments() {
   const controller = usePaymentsController();
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportPayments = async () => {
+    setIsExporting(true);
+    try {
+      const { blob, filename } = await exportAdminCsv("payments");
+      downloadBlob(blob, filename);
+      toast.success("Payment statement exported successfully.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Payment statement export is not available yet.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <AppShell
       title="Payments"
       subtitle="End-to-end money movement from requester to provider, with automatic commission."
       actions={
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={exportPayments} disabled={isExporting}>
           <Receipt className="w-3.5 h-3.5" />
-          Download statement
+          {isExporting ? "Exporting…" : "Download statement"}
         </Button>
       }
     >

@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, Card, SectionHeader, Pill, Button } from "@/components/app-shell";
 import { useRfqController } from "../hooks/useRfqController";
 import { Download, CheckCircle2, XCircle, Eye, Search, ChevronDown } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { exportAdminCsv } from "@/lib/api";
+import { downloadBlob } from "@/lib/download";
 
 export const Route = createFileRoute("/rfq")({
   head: () => ({
@@ -118,6 +122,20 @@ const statusTone = (s: string) =>
 
 function RFQ() {
   const controller = useRfqController();
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportRfqs = async () => {
+    setIsExporting(true);
+    try {
+      const { blob, filename } = await exportAdminCsv("rfqs");
+      downloadBlob(blob, filename);
+      toast.success("RFQs exported successfully.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Unable to export RFQs.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <AppShell
@@ -125,9 +143,9 @@ function RFQ() {
       subtitle="Review and approve incoming requests from requesters."
       actions={
         <>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={exportRfqs} disabled={isExporting}>
             <Download className="w-3.5 h-3.5" />
-            Export CSV
+            {isExporting ? "Exporting…" : "Export CSV"}
           </Button>
           <Button size="sm">Bulk actions</Button>
         </>

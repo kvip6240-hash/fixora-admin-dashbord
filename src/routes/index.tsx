@@ -17,9 +17,12 @@ import {
   fetchProjectRequests,
   fetchActiveBookings,
   fetchPendingBookings,
+  exportAdminCsv,
   type ProjectRequest,
 } from "@/lib/api";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { downloadBlob } from "@/lib/download";
 import { SummaryCard } from "@/components/dashboard/SummaryCard";
 import { RecentBookingsTable } from "@/components/dashboard/RecentBookingsTable";
 
@@ -35,6 +38,20 @@ export const Route = createFileRoute("/")(({
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [isExportingBookings, setIsExportingBookings] = useState(false);
+
+  const exportBookings = async () => {
+    setIsExportingBookings(true);
+    try {
+      const { blob, filename } = await exportAdminCsv("bookings");
+      downloadBlob(blob, filename);
+      toast.success("Bookings exported successfully.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Unable to export bookings.");
+    } finally {
+      setIsExportingBookings(false);
+    }
+  };
 
   // ── Stat counts ──
   const { data: usersCountData, isLoading: usersLoading } = useQuery({
@@ -160,9 +177,14 @@ function Dashboard() {
       subtitle="Real-time control center for platform bookings, revenue, and service operations."
       actions={
         <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={exportBookings}
+            disabled={isExportingBookings}
+          >
             <Download className="w-3.5 h-3.5" />
-            Export Report
+            {isExportingBookings ? "Exporting…" : "Export Bookings"}
           </Button>
         </div>
       }
