@@ -12,7 +12,6 @@ import {
   Tag,
   Paperclip,
   Clock,
-  Filter,
   RefreshCw,
   AlertCircle,
   ChevronLeft,
@@ -1093,8 +1092,8 @@ function ProjectRequestsPage() {
 
           {/* Status Filter Badges/Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-            <span className="text-xs font-medium text-muted-foreground flex items-center gap-1 mr-1 shrink-0">
-              <Filter className="w-3.5 h-3.5" /> Status:
+            <span className="text-xs font-medium text-muted-foreground mr-1 shrink-0">
+              Status:
             </span>
             <button
               onClick={() => handleStatusFilter("")}

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, Card, SectionHeader, Pill, Button } from "@/components/app-shell";
 import { useRfqController } from "../hooks/useRfqController";
-import { Filter, Download, CheckCircle2, XCircle, Eye, Search, ChevronDown } from "lucide-react";
+import { Download, CheckCircle2, XCircle, Eye, Search, ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/rfq")({
   head: () => ({
@@ -152,7 +152,6 @@ function RFQ() {
           </button>
         ))}
         <Button variant="outline" size="sm">
-          <Filter className="w-3.5 h-3.5" />
           Advanced
         </Button>
       </Card>
