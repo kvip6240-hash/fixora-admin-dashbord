@@ -26,6 +26,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/app-shell";
+import { CopyRequestId } from "@/components/CopyRequestId";
 import {
   fetchProjectRequestById,
   prepareProjectQuotation,
@@ -423,7 +424,7 @@ export function RequestDetailModal({
   const schedule = getScheduleDetails(project);
 
   const title = project?.title || project?.projectName || project?.name || "Project Request";
-  const reqNumber = project?.requestNumber || project?.reqNumber || project?.code || project?._id?.slice(-6)?.toUpperCase() || "—";
+  const requestNumber = typeof project?.requestNumber === "string" ? project.requestNumber : undefined;
   const rawDate = project?.createdAt || project?.submittedAt || project?.created_at || project?.updatedAt;
   const { date: submittedDate, time: submittedTime } = formatDateTime(rawDate);
 
@@ -493,11 +494,10 @@ export function RequestDetailModal({
           <div className="flex items-start justify-between mb-5 border-b border-border pb-4">
             <div>
               <div className="flex items-center gap-2">
-                {reqNumber && (
-                  <span className="text-xs font-mono font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
-                    {String(reqNumber)}
-                  </span>
-                )}
+                <CopyRequestId
+                  requestNumber={requestNumber}
+                  className="text-xs font-mono font-medium text-primary bg-primary/10 px-2 py-0.5 rounded"
+                />
                 {Boolean(normalizedStatus) && <StatusBadge status={String(normalizedStatus)} />}
                 {Boolean(project?.priority) && <PriorityBadge priority={String(project?.priority)} />}
               </div>

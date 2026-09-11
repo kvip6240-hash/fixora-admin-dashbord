@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { CopyRequestId } from "@/components/CopyRequestId";
 
 export const Route = createFileRoute("/admin/bookings/$bookingId")({
   component: BookingDetailsPage,
@@ -501,12 +502,12 @@ function BookingDetailsPage() {
   const location = getLocationDetails(booking);
   const schedule = getScheduleDetails(booking);
   const { date: submittedDate, time: submittedTime } = formatDateTime(String(booking.createdAt || booking.submittedAt || ""));
-  const requestNumber = booking.requestNumber || booking._id?.slice(-6)?.toUpperCase() || "—";
+  const requestNumber = typeof booking.requestNumber === "string" ? booking.requestNumber : undefined;
   const priority = booking.priority || "Medium";
 
   return (
     <AppShell
-      title={`Request ${requestNumber}`}
+      title={`Request ${requestNumber || "—"}`}
       subtitle={`Created on ${submittedDate} at ${submittedTime}`}
       actions={
         <div className="flex gap-2">
@@ -531,7 +532,10 @@ function BookingDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Request Number</p>
-                <p className="font-mono text-sm font-semibold text-slate-800 mt-0.5">{requestNumber}</p>
+                <CopyRequestId
+                  requestNumber={requestNumber}
+                  className="mt-0.5 font-mono text-sm font-semibold text-slate-800"
+                />
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Category</p>

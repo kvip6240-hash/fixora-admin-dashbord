@@ -7,6 +7,7 @@
  */
 import { Eye, Inbox } from "lucide-react";
 import { Card, SectionHeader, Button } from "@/components/app-shell";
+import { CopyRequestId } from "@/components/CopyRequestId";
 import type { ProjectRequest } from "@/lib/api";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -60,11 +61,6 @@ function formatDate(raw?: string): { date: string; time: string } {
 function getProjectTitle(req: ProjectRequest): string {
   const r = req as any;
   return r.title || r.projectName || r.name || "—";
-}
-
-function getRequestNumber(req: ProjectRequest): string {
-  const r = req as any;
-  return r.requestNumber || r.reqNumber || r.code || r._id?.slice(-6)?.toUpperCase() || "—";
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -175,6 +171,7 @@ export function RecentBookingsTable({
             ) : (
               bookings.map((b) => {
                 const r = b as any;
+                const requestNumber = typeof r.requestNumber === "string" ? r.requestNumber : undefined;
                 const rawDate = r.createdAt || r.submittedAt || r.created_at || r.date || r.updatedAt;
                 const { date, time } = formatDate(rawDate);
                 return (
@@ -184,7 +181,7 @@ export function RecentBookingsTable({
                     className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                   >
                     <td className="py-3.5 px-4 font-mono text-xs font-semibold text-slate-900 border-b border-slate-100">
-                      {getRequestNumber(b)}
+                      <CopyRequestId requestNumber={requestNumber} />
                     </td>
                     <td className="py-3.5 px-4 font-medium text-slate-800 max-w-[140px] truncate border-b border-slate-100">
                       {getCompanyName(b)}
