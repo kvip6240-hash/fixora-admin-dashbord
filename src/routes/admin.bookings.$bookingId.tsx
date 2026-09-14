@@ -20,7 +20,8 @@ import {
   CheckCircle,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -790,9 +791,19 @@ function BookingDetailsPage() {
         )}
 
         {booking.status === "RFQ" && (
-          <Button disabled className="opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold text-sm">
-            Waiting for Requester Response
-          </Button>
+          <>
+            <Button disabled className="opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold text-sm">
+              Waiting for Requester Response
+            </Button>
+            <Button
+              variant="outline"
+              className="border-teal-200 bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm"
+              onClick={() => navigate({ to: "/admin/requests/$requestId/rfq", params: { requestId: bookingId } })}
+            >
+              <Eye className="w-4 h-4" />
+              View RFQ
+            </Button>
+          </>
         )}
 
         {booking.status === "Accepted" && (

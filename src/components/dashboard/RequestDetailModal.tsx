@@ -8,6 +8,7 @@
  */
 
 import React, { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -24,6 +25,7 @@ import {
   FileCheck,
   Clock,
   CheckCircle2,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/app-shell";
 import { CopyRequestId } from "@/components/CopyRequestId";
@@ -402,6 +404,7 @@ export function RequestDetailModal({
 }) {
   const [isPrepareOpen, setIsPrepareOpen] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: fetched, isLoading } = useQuery({
     queryKey: ["project-request", projectId],
@@ -677,12 +680,22 @@ export function RequestDetailModal({
               )}
 
               {normalizedStatus === "RFQ" && (
-                <Button
-                  disabled
-                  className="w-full sm:w-auto opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold px-6 py-2.5 rounded-xl cursor-not-allowed"
-                >
-                  <span>Waiting for Requester Response</span>
-                </Button>
+                <>
+                  <Button
+                    disabled
+                    className="w-full sm:w-auto opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold px-6 py-2.5 rounded-xl cursor-not-allowed"
+                  >
+                    <span>Waiting for Requester Response</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
+                    onClick={() => navigate({ to: "/admin/requests/$requestId/rfq", params: { requestId: projectId } })}
+                  >
+                    <Eye className="w-4 h-4" />
+                    View RFQ
+                  </Button>
+                </>
               )}
 
               {normalizedStatus === "Accepted" && (

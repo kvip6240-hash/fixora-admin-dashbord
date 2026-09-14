@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { AppShell, Card, Button } from "@/components/app-shell";
 import {
@@ -26,6 +26,7 @@ import {
   Send,
   Loader2,
   CheckCircle2,
+  Eye,
 } from "lucide-react";
 import { useProjectsController } from "../hooks/useProjectsController";
 import { prepareProjectQuotation, publishProjectJob, updateBookingDetails, fetchProjectRequestById, getAttachmentUrl, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
@@ -610,6 +611,7 @@ function DetailModal({
 }) {
   const [isPrepareModalOpen, setIsPrepareModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const initialProject = (rawProject as any)?.data ?? (rawProject as any)?.project ?? rawProject;
   const projectId = String(initialProject._id || initialProject.id);
@@ -896,12 +898,22 @@ function DetailModal({
               )}
 
               {normalizedStatus === "RFQ" && (
-                <Button
-                  disabled
-                  className="w-full sm:w-auto opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold px-6 py-2.5 rounded-xl cursor-not-allowed"
-                >
-                  <span>Waiting for Requester Response</span>
-                </Button>
+                <>
+                  <Button
+                    disabled
+                    className="w-full sm:w-auto opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold px-6 py-2.5 rounded-xl cursor-not-allowed"
+                  >
+                    <span>Waiting for Requester Response</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
+                    onClick={() => navigate({ to: "/admin/requests/$requestId/rfq", params: { requestId: projectId } })}
+                  >
+                    <Eye className="w-4 h-4" />
+                    View RFQ
+                  </Button>
+                </>
               )}
 
               {normalizedStatus === "Accepted" && (
