@@ -52,7 +52,17 @@ export type AttachmentType = "image" | "video" | "pdf" | "document" | "other";
  * Preserves the exact Cloudinary URL (whether image, video, or raw document).
  */
 export function getMediaUrl(
-  attachment?: string | { url?: string; fileUrl?: string; secure_url?: string; path?: string; link?: string; src?: string } | null,
+  attachment?:
+    | string
+    | {
+        url?: string;
+        fileUrl?: string;
+        secure_url?: string;
+        path?: string;
+        link?: string;
+        src?: string;
+      }
+    | null,
 ): string | null {
   if (!attachment) return null;
 
@@ -96,9 +106,7 @@ export function getMediaUrl(
  * Preserves Cloudinary HTTPS URLs intact and upgrades http:// Cloudinary URLs to https://.
  * Never alters Cloudinary resource paths (/video/upload/, /raw/upload/, etc.).
  */
-export function getAttachmentUrl(
-  attachment?: any,
-): string {
+export function getAttachmentUrl(attachment?: any): string {
   const rawUrl = getMediaUrl(attachment);
   if (!rawUrl) return "";
 
@@ -131,9 +139,7 @@ export function getAttachmentUrl(
  * 3. format (e.g. mp4, pdf, png)
  * 4. File extension from URL or original filename/public_id
  */
-export function getAttachmentType(
-  attachment?: any,
-): AttachmentType {
+export function getAttachmentType(attachment?: any): AttachmentType {
   if (!attachment) return "other";
 
   const mediaUrl = getMediaUrl(attachment);
@@ -144,9 +150,15 @@ export function getAttachmentType(
     return parts.length > 1 ? parts.pop()!.toLowerCase().trim() : "";
   };
 
-  const fileName = typeof attachment === "object" && attachment !== null
-    ? String((attachment as any).original_filename || (attachment as any).name || (attachment as any).public_id || "")
-    : "";
+  const fileName =
+    typeof attachment === "object" && attachment !== null
+      ? String(
+          (attachment as any).original_filename ||
+            (attachment as any).name ||
+            (attachment as any).public_id ||
+            "",
+        )
+      : "";
 
   let resourceType = "";
   let mimeType = "";
@@ -154,20 +166,46 @@ export function getAttachmentType(
   let typeProp = "";
 
   if (attachment && typeof attachment === "object" && !Array.isArray(attachment)) {
-    resourceType = String(attachment.resource_type || "").toLowerCase().trim();
-    mimeType = String(attachment.mime_type || attachment.mimeType || "").toLowerCase().trim();
-    format = String(attachment.format || "").toLowerCase().trim();
-    typeProp = String(attachment.type || "").toLowerCase().trim();
+    resourceType = String(attachment.resource_type || "")
+      .toLowerCase()
+      .trim();
+    mimeType = String(attachment.mime_type || attachment.mimeType || "")
+      .toLowerCase()
+      .trim();
+    format = String(attachment.format || "")
+      .toLowerCase()
+      .trim();
+    typeProp = String(attachment.type || "")
+      .toLowerCase()
+      .trim();
   }
 
   const videoFormats = ["mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp", "ogv", "flv", "wmv"];
-  const imageFormats = ["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "ico", "tiff", "heic", "avif"];
+  const imageFormats = [
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+    "gif",
+    "svg",
+    "bmp",
+    "ico",
+    "tiff",
+    "heic",
+    "avif",
+  ];
   const docFormats = ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "rtf", "csv"];
 
   // 1. Check resource_type
   if (resourceType === "video" || typeProp === "video") return "video";
   if (resourceType === "image" || typeProp === "image") return "image";
-  if (resourceType === "raw" && (format === "pdf" || mimeType === "application/pdf" || getExt(mediaUrl) === "pdf" || getExt(fileName) === "pdf")) {
+  if (
+    resourceType === "raw" &&
+    (format === "pdf" ||
+      mimeType === "application/pdf" ||
+      getExt(mediaUrl) === "pdf" ||
+      getExt(fileName) === "pdf")
+  ) {
     return "pdf";
   }
 
@@ -175,7 +213,8 @@ export function getAttachmentType(
   if (mimeType.startsWith("video/")) return "video";
   if (mimeType.startsWith("image/")) return "image";
   if (mimeType === "application/pdf") return "pdf";
-  if (mimeType.startsWith("text/") || mimeType.includes("document") || mimeType.includes("sheet")) return "document";
+  if (mimeType.startsWith("text/") || mimeType.includes("document") || mimeType.includes("sheet"))
+    return "document";
 
   // 3. Check format
   if (format === "pdf" || typeProp === "pdf") return "pdf";
@@ -203,30 +242,21 @@ export function getAttachmentType(
 /**
  * Safely determines if the media attachment is a video.
  */
-export function isVideo(
-  attachment: any,
-  mediaUrl?: string | null,
-): boolean {
+export function isVideo(attachment: any, mediaUrl?: string | null): boolean {
   return getAttachmentType(attachment) === "video";
 }
 
 /**
  * Safely determines if the media attachment is an image.
  */
-export function isImage(
-  attachment: any,
-  mediaUrl?: string | null,
-): boolean {
+export function isImage(attachment: any, mediaUrl?: string | null): boolean {
   return getAttachmentType(attachment) === "image";
 }
 
 /**
  * Safely determines if the media attachment is a PDF document.
  */
-export function isPdf(
-  attachment: any,
-  mediaUrl?: string | null,
-): boolean {
+export function isPdf(attachment: any, mediaUrl?: string | null): boolean {
   return getAttachmentType(attachment) === "pdf";
 }
 
@@ -492,14 +522,54 @@ export interface PrepareQuotationPayload {
 /** POST /api/admin/project-requests/:id/prepare-quotation */
 export async function prepareProjectQuotation(
   id: string,
-  payload: PrepareQuotationPayload
+  payload: PrepareQuotationPayload,
 ): Promise<{ success: boolean; data?: ProjectRequest; message?: string }> {
   return request<{ success: boolean; data?: ProjectRequest; message?: string }>(
     `/api/admin/project-requests/${id}/prepare-quotation`,
     {
       method: "POST",
       body: JSON.stringify(payload),
-    }
+    },
+  );
+}
+
+export interface AdminRfqDetails {
+  rfqNumber?: string | null;
+  status?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  estimatedDuration?: string | null;
+  hourlyRate?: number | null;
+  labourCost?: number | null;
+  materialCost?: number | null;
+  serviceCharge?: number | null;
+  tax?: number | null;
+  discount?: number | null;
+  remarks?: string | null;
+  sentAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  projectRequestId?: {
+    requestNumber?: string | null;
+    title?: string | null;
+    description?: string | null;
+    status?: string | null;
+    categoryId?: { name?: string | null } | null;
+    assignedProvider?: { companyName?: string | null; name?: string | null } | null;
+  } | null;
+  requesterId?: {
+    companyName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+}
+
+/** GET /api/admin/project-requests/:id/rfq */
+export async function fetchAdminRfqDetails(
+  id: string,
+): Promise<{ success: boolean; data: AdminRfqDetails }> {
+  return request<{ success: boolean; data: AdminRfqDetails }>(
+    `/api/admin/project-requests/${id}/rfq`,
   );
 }
 
@@ -572,7 +642,9 @@ export async function fetchServiceProviders(params?: {
   if (params?.isApproved !== undefined) query.set("isApproved", String(params.isApproved));
   if (params?.sort) query.set("sort", params.sort);
   const qs = query.toString();
-  return request<PaginatedResponse<ServiceProvider>>(`/api/admin/service-providers${qs ? `?${qs}` : ""}`);
+  return request<PaginatedResponse<ServiceProvider>>(
+    `/api/admin/service-providers${qs ? `?${qs}` : ""}`,
+  );
 }
 
 /** GET /api/admin/users/count */
@@ -586,7 +658,10 @@ export async function fetchServiceProvidersCount(): Promise<{ success: boolean; 
 }
 
 /** PUT /api/admin/users/:id */
-export async function updateUser(id: string, data: Partial<User>): Promise<{ success: boolean; data: User }> {
+export async function updateUser(
+  id: string,
+  data: Partial<User>,
+): Promise<{ success: boolean; data: User }> {
   return request<{ success: boolean; data: User }>(`/api/admin/users/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -601,26 +676,40 @@ export async function deleteUser(id: string): Promise<{ success: boolean; messag
 }
 
 /** PUT /api/admin/service-providers/:id */
-export async function updateServiceProvider(id: string, data: Partial<ServiceProvider>): Promise<{ success: boolean; data: ServiceProvider }> {
-  return request<{ success: boolean; data: ServiceProvider }>(`/api/admin/service-providers/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
+export async function updateServiceProvider(
+  id: string,
+  data: Partial<ServiceProvider>,
+): Promise<{ success: boolean; data: ServiceProvider }> {
+  return request<{ success: boolean; data: ServiceProvider }>(
+    `/api/admin/service-providers/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 /** DELETE /api/admin/service-providers/:id */
-export async function deleteServiceProvider(id: string): Promise<{ success: boolean; message: string }> {
+export async function deleteServiceProvider(
+  id: string,
+): Promise<{ success: boolean; message: string }> {
   return request<{ success: boolean; message: string }>(`/api/admin/service-providers/${id}`, {
     method: "DELETE",
   });
 }
 
 /** PUT /api/admin/service-providers/:id/status */
-export async function updateServiceProviderStatus(id: string, status: { isActive?: boolean; isApproved?: boolean }): Promise<{ success: boolean; data: ServiceProvider }> {
-  return request<{ success: boolean; data: ServiceProvider }>(`/api/admin/service-providers/${id}/status`, {
-    method: "PUT",
-    body: JSON.stringify(status),
-  });
+export async function updateServiceProviderStatus(
+  id: string,
+  status: { isActive?: boolean; isApproved?: boolean },
+): Promise<{ success: boolean; data: ServiceProvider }> {
+  return request<{ success: boolean; data: ServiceProvider }>(
+    `/api/admin/service-providers/${id}/status`,
+    {
+      method: "PUT",
+      body: JSON.stringify(status),
+    },
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -662,7 +751,11 @@ export async function adminFetchCategories(params?: {
 }
 
 /** POST /api/admin/categories */
-export async function adminCreateCategory(data: { name: string; icon?: string; isActive?: boolean }): Promise<{ success: boolean; data: Category }> {
+export async function adminCreateCategory(data: {
+  name: string;
+  icon?: string;
+  isActive?: boolean;
+}): Promise<{ success: boolean; data: Category }> {
   return request<{ success: boolean; data: Category }>("/api/admin/categories", {
     method: "POST",
     body: JSON.stringify(data),
@@ -670,7 +763,10 @@ export async function adminCreateCategory(data: { name: string; icon?: string; i
 }
 
 /** PUT /api/admin/categories/:id */
-export async function adminUpdateCategory(id: string, data: Partial<Category>): Promise<{ success: boolean; data: Category }> {
+export async function adminUpdateCategory(
+  id: string,
+  data: Partial<Category>,
+): Promise<{ success: boolean; data: Category }> {
   return request<{ success: boolean; data: Category }>(`/api/admin/categories/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -678,7 +774,9 @@ export async function adminUpdateCategory(id: string, data: Partial<Category>): 
 }
 
 /** DELETE /api/admin/categories/:id */
-export async function adminDeleteCategory(id: string): Promise<{ success: boolean; message: string }> {
+export async function adminDeleteCategory(
+  id: string,
+): Promise<{ success: boolean; message: string }> {
   return request<{ success: boolean; message: string }>(`/api/admin/categories/${id}`, {
     method: "DELETE",
   });
@@ -737,17 +835,30 @@ export interface BookingDetails {
 }
 
 /** GET /api/admin/recent-bookings */
-export async function fetchRecentBookings(): Promise<{ success: boolean; data: BookingListItem[] }> {
+export async function fetchRecentBookings(): Promise<{
+  success: boolean;
+  data: BookingListItem[];
+}> {
   return request<{ success: boolean; data: BookingListItem[] }>("/api/admin/recent-bookings");
 }
 
 /** GET /api/admin/bookings/:id */
-export async function fetchBookingDetails(id: string): Promise<{ success: boolean; data: BookingDetails }> {
+export async function fetchBookingDetails(
+  id: string,
+): Promise<{ success: boolean; data: BookingDetails }> {
   return request<{ success: boolean; data: BookingDetails }>(`/api/admin/bookings/${id}`);
 }
 
 /** PUT /api/admin/bookings/:id */
-export async function updateBookingDetails(id: string, data: { status?: string; assignedProvider?: string | null; paymentStatus?: string; adminNotes?: string }): Promise<{ success: boolean; data: any }> {
+export async function updateBookingDetails(
+  id: string,
+  data: {
+    status?: string;
+    assignedProvider?: string | null;
+    paymentStatus?: string;
+    adminNotes?: string;
+  },
+): Promise<{ success: boolean; data: any }> {
   return request<{ success: boolean; data: any }>(`/api/admin/bookings/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -784,13 +895,25 @@ export interface PendingBookingItem {
 }
 
 /** GET /api/admin/bookings/active */
-export async function fetchActiveBookings(): Promise<{ success: boolean; count: number; data: ActiveBookingItem[] }> {
-  return request<{ success: boolean; count: number; data: ActiveBookingItem[] }>("/api/admin/bookings/active");
+export async function fetchActiveBookings(): Promise<{
+  success: boolean;
+  count: number;
+  data: ActiveBookingItem[];
+}> {
+  return request<{ success: boolean; count: number; data: ActiveBookingItem[] }>(
+    "/api/admin/bookings/active",
+  );
 }
 
 /** GET /api/admin/bookings/pending */
-export async function fetchPendingBookings(): Promise<{ success: boolean; count: number; data: PendingBookingItem[] }> {
-  return request<{ success: boolean; count: number; data: PendingBookingItem[] }>("/api/admin/bookings/pending");
+export async function fetchPendingBookings(): Promise<{
+  success: boolean;
+  count: number;
+  data: PendingBookingItem[];
+}> {
+  return request<{ success: boolean; count: number; data: PendingBookingItem[] }>(
+    "/api/admin/bookings/pending",
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -849,44 +972,42 @@ function buildReportsQuery(params?: ReportsFilterParams): string {
 
 /** GET /api/admin/reports/dashboard */
 export async function fetchReportsDashboard(
-  params?: ReportsFilterParams
+  params?: ReportsFilterParams,
 ): Promise<{ success: boolean; data: ReportsDashboardData }> {
   return request<{ success: boolean; data: ReportsDashboardData }>(
-    `/api/admin/reports/dashboard${buildReportsQuery(params)}`
+    `/api/admin/reports/dashboard${buildReportsQuery(params)}`,
   );
 }
 
 /** GET /api/admin/reports/monthly-rfq */
 export async function fetchReportsMonthlyRfq(
-  params?: ReportsFilterParams
+  params?: ReportsFilterParams,
 ): Promise<{ success: boolean; data: ReportsMonthlyRfq[] }> {
   return request<{ success: boolean; data: ReportsMonthlyRfq[] }>(
-    `/api/admin/reports/monthly-rfq${buildReportsQuery(params)}`
+    `/api/admin/reports/monthly-rfq${buildReportsQuery(params)}`,
   );
 }
 
 /** GET /api/admin/reports/category-mix */
 export async function fetchReportsCategoryMix(
-  params?: ReportsFilterParams
+  params?: ReportsFilterParams,
 ): Promise<{ success: boolean; data: ReportsCategoryMix[] }> {
   return request<{ success: boolean; data: ReportsCategoryMix[] }>(
-    `/api/admin/reports/category-mix${buildReportsQuery(params)}`
+    `/api/admin/reports/category-mix${buildReportsQuery(params)}`,
   );
 }
 
 /** GET /api/admin/reports/regional-performance */
 export async function fetchReportsRegionalPerformance(
-  params?: ReportsFilterParams
+  params?: ReportsFilterParams,
 ): Promise<{ success: boolean; data: ReportsRegionalPerformance[] }> {
   return request<{ success: boolean; data: ReportsRegionalPerformance[] }>(
-    `/api/admin/reports/regional-performance${buildReportsQuery(params)}`
+    `/api/admin/reports/regional-performance${buildReportsQuery(params)}`,
   );
 }
 
 /** GET /api/admin/reports/filter */
-export async function fetchReportsFilteredCombined(
-  params?: ReportsFilterParams
-): Promise<{
+export async function fetchReportsFilteredCombined(params?: ReportsFilterParams): Promise<{
   success: boolean;
   data: {
     summary: ReportsDashboardData;
@@ -909,7 +1030,7 @@ export async function fetchReportsFilteredCombined(
 /** GET /api/admin/reports/export */
 export async function exportReportFile(
   type: "excel" | "csv" | "pdf",
-  params?: ReportsFilterParams
+  params?: ReportsFilterParams,
 ): Promise<Blob> {
   const token = localStorage.getItem("fixora_token");
   const query = new URLSearchParams();
@@ -977,7 +1098,9 @@ export async function exportAdminCsv(
 
   return {
     blob: await response.blob(),
-    filename: getDownloadFilename(response.headers.get("Content-Disposition"), `fixora-${resource}.csv`),
+    filename: getDownloadFilename(
+      response.headers.get("Content-Disposition"),
+      `fixora-${resource}.csv`,
+    ),
   };
 }
-
