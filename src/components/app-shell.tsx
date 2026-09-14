@@ -8,7 +8,6 @@ import {
   Wallet,
   Building2,
   BarChart3,
-  LifeBuoy,
   Settings,
   Search,
   ChevronDown,
@@ -26,7 +25,6 @@ const nav: Array<{
     { label: "Payments", to: "/payments", icon: Wallet },
     { label: "Companies", to: "/companies", icon: Building2 },
     { label: "Reports & Analytics", to: "/reports", icon: BarChart3 },
-    { label: "Support", to: "/support", icon: LifeBuoy },
     { label: "Settings", to: "/settings", icon: Settings },
   ];
 
