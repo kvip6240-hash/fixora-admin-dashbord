@@ -4,6 +4,8 @@ import {
   ArrowLeft,
   Building2,
   CalendarDays,
+  ChevronDown,
+  Download,
   FileCheck,
   FileText,
   Loader2,
@@ -12,6 +14,16 @@ import {
 import { AppShell, Button, Card } from "@/components/app-shell";
 import { fetchAdminRfqDetails } from "@/lib/api";
 import { CopyRequestId } from "@/components/CopyRequestId";
+import { downloadRfqData, type RfqDownloadFormat } from "@/lib/rfq-download";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/requests/$requestId/rfq")({
   component: RfqDetailsPage,
@@ -55,6 +67,7 @@ function Field({ label, value }: { label: string; value?: string | null }) {
 function RfqDetailsPage() {
   const { requestId } = Route.useParams();
   const navigate = useNavigate();
+  const [downloading, setDownloading] = useState<RfqDownloadFormat | null>(null);
   const {
     data: response,
     isLoading,
@@ -99,16 +112,55 @@ function RfqDetailsPage() {
   const project = rfq.projectRequestId;
   const requester = rfq.requesterId;
   const providerName = project?.assignedProvider?.companyName || project?.assignedProvider?.name;
+  const download = async (format: RfqDownloadFormat) => {
+    setDownloading(format);
+    try {
+      downloadRfqData(rfq, format);
+      toast.success("RFQ download started.");
+    } catch (downloadError: unknown) {
+      toast.error(
+        downloadError instanceof Error ? downloadError.message : "Unable to generate the download.",
+      );
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   return (
     <AppShell
       title="RFQ Details"
       subtitle="Prepared quotation sent to the requester"
       actions={
-        <Button variant="outline" size="sm" onClick={backToRequest}>
-          <ArrowLeft className="h-4 w-4" />
-          Back to Request
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={backToRequest}>
+            <ArrowLeft className="h-4 w-4" />
+            Back to Request
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="primary" size="sm" disabled={downloading !== null}>
+                <Download className="h-4 w-4" />
+                {downloading ? "Generating…" : "Download"}
+                <ChevronDown className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuItem onSelect={() => download("invoice-pdf")}>
+                Download Invoice PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => download("rfq-pdf")}>
+                Download RFQ PDF
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => download("excel")}>
+                Download RFQ Data - Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => download("csv")}>
+                Download RFQ Data - CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       }
     >
       <div className="mx-auto max-w-6xl space-y-6">
