@@ -55,11 +55,23 @@ function formatMoney(value?: number | null, currency?: string | null) {
   }
 }
 
-function Field({ label, value }: { label: string; value?: string | null }) {
+function Field({
+  label,
+  value,
+  className = "",
+  valueClassName = "",
+}: {
+  label: string;
+  value?: string | null;
+  className?: string;
+  valueClassName?: string;
+}) {
   return (
-    <div>
+    <div className={`min-w-0 ${className}`}>
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-medium text-slate-800">{value || "Not provided"}</p>
+      <p className={`mt-1 text-sm font-medium text-slate-800 ${valueClassName}`}>
+        {value || "Not provided"}
+      </p>
     </div>
   );
 }
@@ -202,9 +214,9 @@ function RfqDetailsPage() {
               <User className="h-5 w-5 text-teal-700" />
               Requester Information
             </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,1fr)]">
               <Field label="Company Name" value={requester?.companyName} />
-              <Field label="Email" value={requester?.email} />
+              <Field label="Email" value={requester?.email} valueClassName="break-all" />
               <Field label="Phone" value={requester?.phone} />
             </div>
           </Card>
