@@ -69,12 +69,19 @@ export function AppShell({
       <Toaster position="top-right" richColors closeButton />
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
-        <div className="h-[76px] flex items-center justify-center px-5 border-b border-sidebar-border bg-card">
-          <img
-            src="/versal-axis-logo.png"
-            alt="Versal Axis"
-            className="w-[190px] max-w-full h-auto object-contain"
-          />
+        <div className="h-16 flex items-center px-5 bg-[#143f39] border-b border-[#24524c] shadow-sm">
+          <a href="/" aria-label="Versal Axis dashboard" className="flex items-center gap-2.5">
+            <span className="block h-7 w-7 overflow-hidden shrink-0">
+              <img
+                src="/versal-axis-logo.png"
+                alt=""
+                className="h-7 w-auto max-w-none object-contain object-left"
+              />
+            </span>
+            <span className="text-sm font-semibold tracking-[0.12em] text-[#d8e8e3]">
+              VERSAL AXIS
+            </span>
+          </a>
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
           {nav.map((item) => {
