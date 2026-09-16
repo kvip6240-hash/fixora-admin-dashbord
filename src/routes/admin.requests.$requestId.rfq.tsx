@@ -127,7 +127,7 @@ function RfqDetailsPage() {
   const download = async (format: RfqDownloadFormat) => {
     setDownloading(format);
     try {
-      downloadRfqData(rfq, format);
+      await downloadRfqData(rfq, format);
       toast.success("RFQ download started.");
     } catch (downloadError: unknown) {
       toast.error(

@@ -81,13 +81,27 @@ function csvValue(value: unknown) {
   return `"${safe.replace(/"/g, '""')}"`;
 }
 
-function downloadPdf(rfq: AdminRfqDetails, invoice: boolean) {
+async function loadPdfLogo() {
+  const response = await fetch("/versal-axis-logo.png");
+  if (!response.ok) throw new Error("Unable to load the Versal Axis logo for the PDF.");
+
+  const logo = await response.blob();
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Unable to prepare the Versal Axis logo for the PDF."));
+    reader.readAsDataURL(logo);
+  });
+}
+
+async function downloadPdf(rfq: AdminRfqDetails, invoice: boolean) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const project = rfq.projectRequestId;
   const requester = rfq.requesterId;
   const provider = project?.assignedProvider;
   const file = `Versal-Axis-${invoice ? "Invoice" : "RFQ"}-${identifier(rfq)}.pdf`;
-  let y = 43;
+  const logo = await loadPdfLogo();
+  let y = 53;
   const space = (height: number) => {
     if (y + height > 275) {
       doc.addPage();
@@ -117,16 +131,17 @@ function downloadPdf(rfq: AdminRfqDetails, invoice: boolean) {
   };
 
   doc.setFillColor(13, 34, 64);
-  doc.rect(0, 0, 210, 32, "F");
+  doc.rect(0, 0, 210, 42, "F");
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(15, 8, 61, 20, 2, 2, "F");
+  doc.addImage(logo, "PNG", 18, 10, 55, 18.3, undefined, "FAST");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.text("VERSAL AXIS", 16, 18);
   doc.setFontSize(11);
-  doc.text(invoice ? "INVOICE" : "REQUEST FOR QUOTATION", 16, 25);
+  doc.text(invoice ? "INVOICE" : "REQUEST FOR QUOTATION", 16, 35);
   doc.setFontSize(10);
-  doc.text(`RFQ: ${text(rfq.rfqNumber)}`, 145, 18);
-  doc.text(`Request: ${text(project?.requestNumber)}`, 145, 25);
+  doc.text(`RFQ: ${text(rfq.rfqNumber)}`, 145, 19);
+  doc.text(`Request: ${text(project?.requestNumber)}`, 145, 27);
 
   section("RFQ Summary");
   line("RFQ Status", text(rfq.status));
@@ -159,7 +174,7 @@ function downloadPdf(rfq: AdminRfqDetails, invoice: boolean) {
   downloadBlob(doc.output("blob"), file);
 }
 
-export function downloadRfqData(rfq: AdminRfqDetails, format: RfqDownloadFormat) {
+export async function downloadRfqData(rfq: AdminRfqDetails, format: RfqDownloadFormat) {
   if (format === "invoice-pdf") return downloadPdf(rfq, true);
   if (format === "rfq-pdf") return downloadPdf(rfq, false);
   const data = record(rfq);
