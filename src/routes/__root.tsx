@@ -71,8 +71,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Fixora Admin Dashboard" },
-      { name: "description", content: "Fixora Admin — platform operations and management." },
+      { title: "Versal Axis Admin Dashboard" },
+      { name: "description", content: "Versal Axis Admin — platform operations and management." },
     ],
   }),
   component: RootComponent,

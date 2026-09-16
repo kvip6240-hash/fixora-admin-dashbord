@@ -47,15 +47,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 export const Route = createFileRoute("/projects")({
   head: () => ({
     meta: [
-      { title: "Project Requests — Fixora Admin" },
+      { title: "Project Requests — Versal Axis Admin" },
       {
         name: "description",
-        content: "Track and manage all project requests submitted on Fixora.",
+        content: "Track and manage all project requests submitted on Versal Axis.",
       },
-      { property: "og:title", content: "Project Requests — Fixora Admin" },
+      { property: "og:title", content: "Project Requests — Versal Axis Admin" },
       {
         property: "og:description",
-        content: "Track and manage all project requests submitted on Fixora.",
+        content: "Track and manage all project requests submitted on Versal Axis.",
       },
     ],
   }),
@@ -93,7 +93,7 @@ function getCategoryName(reqInput: any): string {
   if (!reqInput) return "—";
   const req = reqInput.data ?? reqInput.project ?? reqInput;
 
-  // ✅ Nested inside projectDetails (Fixora API structure)
+  // ✅ Nested inside projectDetails (Versal Axis API structure)
   if (req.projectDetails && typeof req.projectDetails === "object") {
     const pd = req.projectDetails;
     if (typeof pd.categoryName === "string" && pd.categoryName) return pd.categoryName;

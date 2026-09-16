@@ -6,13 +6,13 @@ import { Download, Loader2 } from "lucide-react";
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
-      { title: "Reports & Analytics — Fixora Admin" },
+      { title: "Reports & Analytics — Versal Axis Admin" },
       {
         name: "description",
         content:
           "Marketplace analytics on RFQ throughput, conversion, commission and category mix.",
       },
-      { property: "og:title", content: "Reports & Analytics — Fixora Admin" },
+      { property: "og:title", content: "Reports & Analytics — Versal Axis Admin" },
       {
         property: "og:description",
         content:
@@ -174,4 +174,3 @@ function Reports() {
     </AppShell>
   );
 }
-

@@ -6,7 +6,7 @@ import { buildApiUrl, getApiBaseUrl } from "@/lib/api";
 export const Route = createFileRoute("/login")({
   component: LoginPage,
   head: () => ({
-    meta: [{ title: "Login — Fixora Admin" }],
+    meta: [{ title: "Login — Versal Axis Admin" }],
   }),
 });
 
@@ -167,7 +167,7 @@ function LoginPage() {
             <div className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 mb-4">
               <Building2 className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Fixora Admin</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Versal Axis Admin</h1>
             <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
           </div>
 
@@ -185,7 +185,7 @@ function LoginPage() {
                 <Input
                   label="Email address"
                   type="email"
-                  placeholder="admin@fixora.com"
+                  placeholder="admin@versalaxis.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);

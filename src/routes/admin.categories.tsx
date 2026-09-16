@@ -57,10 +57,10 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/admin/categories")({
   head: () => ({
     meta: [
-      { title: "Manage Categories — Fixora Admin" },
+      { title: "Manage Categories — Versal Axis Admin" },
       {
         name: "description",
-        content: "Enterprise category management console for Fixora admin operations.",
+        content: "Enterprise category management console for Versal Axis admin operations.",
       },
     ],
   }),
@@ -225,7 +225,7 @@ function AdminCategoriesPage() {
   return (
     <AppShell
       title="Platform Categories Console"
-      subtitle="Configure and manage service categories dynamically for Fixora RFQs and Providers."
+      subtitle="Configure and manage service categories dynamically for Versal Axis RFQs and Providers."
     >
       {/* Search and Filters */}
       <Card className="p-4 mb-6 shadow-xs border border-border">
@@ -534,7 +534,7 @@ function AdminCategoriesPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add New Category</DialogTitle>
-            <DialogDescription>Create a new service category for the Fixora platform.</DialogDescription>
+            <DialogDescription>Create a new service category for the Versal Axis platform.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">

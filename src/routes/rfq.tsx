@@ -10,13 +10,13 @@ import { downloadBlob } from "@/lib/download";
 export const Route = createFileRoute("/rfq")({
   head: () => ({
     meta: [
-      { title: "RFQ Management — Quotalink" },
+      { title: "RFQ Management — Versal Axis" },
       {
         name: "description",
         content:
           "Review, approve, reject and broadcast incoming Requests for Quotation across the marketplace.",
       },
-      { property: "og:title", content: "RFQ Management — Quotalink" },
+      { property: "og:title", content: "RFQ Management — Versal Axis" },
       {
         property: "og:description",
         content:

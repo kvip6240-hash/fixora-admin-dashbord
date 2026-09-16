@@ -29,8 +29,8 @@ import { RecentBookingsTable } from "@/components/dashboard/RecentBookingsTable"
 export const Route = createFileRoute("/")(({
   head: () => ({
     meta: [
-      { title: "Enterprise Dashboard — Fixora Admin" },
-      { name: "description", content: "Executive overview for Fixora operations and bookings." },
+      { title: "Enterprise Dashboard — Versal Axis Admin" },
+      { name: "description", content: "Executive overview for Versal Axis operations and bookings." },
     ],
   }),
   component: Dashboard,

@@ -62,11 +62,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/admin/service-providers")({
   head: () => ({
     meta: [
-      { title: "Manage Service Providers — Fixora Admin" },
+      { title: "Manage Service Providers — Versal Axis Admin" },
       {
         name: "description",
         content:
-          "Executive management console for all service providers on the Fixora platform.",
+          "Executive management console for all service providers on the Versal Axis platform.",
       },
     ],
   }),
@@ -263,7 +263,7 @@ function AdminServiceProvidersPage() {
   return (
     <AppShell
       title="Service Providers Console"
-      subtitle="Complete management for all service providers registered on the Fixora platform."
+      subtitle="Complete management for all service providers registered on the Versal Axis platform."
     >
       {/* Search and Filters */}
       <Card className="p-4 mb-6 shadow-xs border border-border">

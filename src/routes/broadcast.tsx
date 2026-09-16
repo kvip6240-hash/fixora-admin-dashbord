@@ -6,12 +6,12 @@ import { useBroadcastController } from "../hooks/useBroadcastController";
 export const Route = createFileRoute("/broadcast")({
   head: () => ({
     meta: [
-      { title: "Broadcast Center — Quotalink" },
+      { title: "Broadcast Center — Versal Axis" },
       {
         name: "description",
         content: "Select verified providers and broadcast RFQs with real-time delivery tracking.",
       },
-      { property: "og:title", content: "Broadcast Center — Quotalink" },
+      { property: "og:title", content: "Broadcast Center — Versal Axis" },
       {
         property: "og:description",
         content: "Select verified providers and broadcast RFQs with real-time delivery tracking.",

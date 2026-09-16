@@ -69,33 +69,12 @@ export function AppShell({
       <Toaster position="top-right" richColors closeButton />
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
-        <div className="h-16 flex items-center gap-2.5 px-4 border-b border-sidebar-border">
-          {/* Fixora Brand Mark — dark navy F + teal accents */}
-          <svg className="w-9 h-9 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Dark navy vertical stem */}
-            <rect x="8" y="8" width="20" height="84" rx="4" fill="#0D2240"/>
-            {/* Dark navy top horizontal bar */}
-            <rect x="8" y="8" width="76" height="20" rx="4" fill="#0D2240"/>
-            {/* Dark navy middle horizontal bar stub */}
-            <rect x="8" y="40" width="50" height="18" rx="4" fill="#0D2240"/>
-            {/* Teal top-right accent (parallelogram shape) */}
-            <rect x="52" y="8" width="32" height="20" rx="4" fill="#2DB899"/>
-            {/* Teal middle accent */}
-            <rect x="36" y="40" width="22" height="18" rx="4" fill="#2DB899"/>
-          </svg>
-
-          {/* Vertical Line Divider */}
-          <div className="w-[1px] h-7 bg-slate-200 dark:bg-slate-700/60 shrink-0" />
-
-          {/* Branding Text */}
-          <div className="flex flex-col justify-center">
-            <span className="text-[18px] font-extrabold text-[#0D2240] dark:text-white tracking-[0.4px] leading-none">
-              FIXORA
-            </span>
-            <span className="text-[12px] font-normal text-[#64748B] dark:text-slate-400 tracking-[0.2px] leading-none mt-1">
-              Admin Console
-            </span>
-          </div>
+        <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
+          <img
+            src="/versal-axis-logo.png"
+            alt="Versal Axis"
+            className="h-10 w-auto max-w-[205px] object-contain object-left"
+          />
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
           {nav.map((item) => {

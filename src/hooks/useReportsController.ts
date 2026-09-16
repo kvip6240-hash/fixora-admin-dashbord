@@ -45,7 +45,7 @@ export function useReportsController(initialParams?: ReportsFilterParams) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `fixora-report-${new Date().toISOString().slice(0, 10)}.${format === "excel" ? "xlsx" : format}`;
+      a.download = `versal-axis-report-${new Date().toISOString().slice(0, 10)}.${format === "excel" ? "xlsx" : format}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -79,4 +79,3 @@ export function useReportsController(initialParams?: ReportsFilterParams) {
       regionalPerformanceQuery.isError,
   };
 }
-

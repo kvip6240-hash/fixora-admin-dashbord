@@ -52,8 +52,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
     meta: [
-      { title: "Manage Users — Fixora Admin" },
-      { name: "description", content: "Executive user management console for Fixora admin operations." },
+      { title: "Manage Users — Versal Axis Admin" },
+      { name: "description", content: "Executive user management console for Versal Axis admin operations." },
     ],
   }),
   component: AdminUsersPage,
@@ -199,7 +199,7 @@ function AdminUsersPage() {
   return (
     <AppShell
       title="Admin Users Console"
-      subtitle="Complete management of all customer companies registered on the Fixora platform."
+      subtitle="Complete management of all customer companies registered on the Versal Axis platform."
     >
       {/* Search and Filters */}
       <Card className="p-4 mb-6 shadow-xs border border-border">

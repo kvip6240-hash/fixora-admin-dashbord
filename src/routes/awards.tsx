@@ -6,12 +6,12 @@ import { useAwardsController } from "../hooks/useAwardsController";
 export const Route = createFileRoute("/awards")({
   head: () => ({
     meta: [
-      { title: "Award Management — Quotalink" },
+      { title: "Award Management — Versal Axis" },
       {
         name: "description",
         content: "Confirm winning providers and issue work orders after requester selection.",
       },
-      { property: "og:title", content: "Award Management — Quotalink" },
+      { property: "og:title", content: "Award Management — Versal Axis" },
       {
         property: "og:description",
         content: "Confirm winning providers and issue work orders after requester selection.",

@@ -10,13 +10,13 @@ import { downloadBlob } from "@/lib/download";
 export const Route = createFileRoute("/payments")({
   head: () => ({
     meta: [
-      { title: "Payments — Quotalink" },
+      { title: "Payments — Versal Axis" },
       {
         name: "description",
         content:
           "Client invoices, commission earnings and provider payouts across the marketplace.",
       },
-      { property: "og:title", content: "Payments — Quotalink" },
+      { property: "og:title", content: "Payments — Versal Axis" },
       {
         property: "og:description",
         content:

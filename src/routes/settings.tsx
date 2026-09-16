@@ -5,13 +5,13 @@ import { useSettingsController } from "../hooks/useSettingsController";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Quotalink" },
+      { title: "Settings — Versal Axis" },
       {
         name: "description",
         content:
           "Platform settings including commission rates, verification rules and notifications.",
       },
-      { property: "og:title", content: "Settings — Quotalink" },
+      { property: "og:title", content: "Settings — Versal Axis" },
       {
         property: "og:description",
         content:

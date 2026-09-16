@@ -7,12 +7,12 @@ import { SkeletonRow } from "@/components/skeletons";
 export const Route = createFileRoute("/companies")({
   head: () => ({
     meta: [
-      { title: "Companies — Fixora Admin" },
-      { name: "description", content: "Manage companies registered on the Fixora platform." },
-      { property: "og:title", content: "Companies — Fixora Admin" },
+      { title: "Companies — Versal Axis Admin" },
+      { name: "description", content: "Manage companies registered on the Versal Axis platform." },
+      { property: "og:title", content: "Companies — Versal Axis Admin" },
       {
         property: "og:description",
-        content: "Manage companies registered on the Fixora platform.",
+        content: "Manage companies registered on the Versal Axis platform.",
       },
     ],
   }),

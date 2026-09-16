@@ -1,6 +1,6 @@
-# Fixora Admin Dashboard
+# Versal Axis Admin Dashboard
 
-Standard React + Vite + TypeScript administration dashboard for Fixora.
+Standard React + Vite + TypeScript administration dashboard for Versal Axis.
 
 ## Development
 

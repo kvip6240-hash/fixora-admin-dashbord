@@ -5,9 +5,9 @@ import { useSupportController } from "../hooks/useSupportController";
 export const Route = createFileRoute("/support")({
   head: () => ({
     meta: [
-      { title: "Support — Fixora Admin" },
-      { name: "description", content: "Fixora Admin Dashboard support." },
-      { property: "og:title", content: "Support — Fixora Admin" },
+      { title: "Support — Versal Axis Admin" },
+      { name: "description", content: "Versal Axis Admin Dashboard support." },
+      { property: "og:title", content: "Support — Versal Axis Admin" },
       {
         property: "og:description",
         content: "Support tickets from requesters and providers across the marketplace.",

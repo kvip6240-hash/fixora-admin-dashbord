@@ -1,6 +1,6 @@
 /**
  * src/lib/api.ts
- * Central API client for Fixora Admin Dashboard.
+ * Central API client for Versal Axis Admin Dashboard.
  * Automatically attaches Bearer token from localStorage.
  * Throws ApiError for non-2xx responses with proper status codes.
  */
@@ -1100,7 +1100,7 @@ export async function exportAdminCsv(
     blob: await response.blob(),
     filename: getDownloadFilename(
       response.headers.get("Content-Disposition"),
-      `fixora-${resource}.csv`,
+      `versal-axis-${resource}.csv`,
     ),
   };
 }

@@ -6,12 +6,12 @@ import { useQuotationsController } from "../hooks/useQuotationsController";
 export const Route = createFileRoute("/quotations")({
   head: () => ({
     meta: [
-      { title: "Quotation Management — Quotalink" },
+      { title: "Quotation Management — Versal Axis" },
       {
         name: "description",
         content: "Compare incoming provider quotations and forward the shortlist to requesters.",
       },
-      { property: "og:title", content: "Quotation Management — Quotalink" },
+      { property: "og:title", content: "Quotation Management — Versal Axis" },
       {
         property: "og:description",
         content: "Compare incoming provider quotations and forward the shortlist to requesters.",

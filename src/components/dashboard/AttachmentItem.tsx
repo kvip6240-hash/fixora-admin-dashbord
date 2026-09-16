@@ -1,7 +1,7 @@
 /**
  * src/components/dashboard/AttachmentItem.tsx
  *
- * Robust, production-grade attachment renderer for Fixora Admin Dashboard.
+ * Robust, production-grade attachment renderer for Versal Axis Admin Dashboard.
  * Supports:
  * - Cloudinary & backend images (JPEG, PNG, WebP, GIF, SVG, etc.)
  * - Cloudinary & backend videos (MP4, MOV, WebM, etc.) with video player preview
