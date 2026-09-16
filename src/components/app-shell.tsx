@@ -69,11 +69,11 @@ export function AppShell({
       <Toaster position="top-right" richColors closeButton />
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
-        <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
+        <div className="h-[76px] flex items-center justify-center px-5 border-b border-sidebar-border bg-card">
           <img
             src="/versal-axis-logo.png"
             alt="Versal Axis"
-            className="h-10 w-auto max-w-[205px] object-contain object-left"
+            className="w-[190px] max-w-full h-auto object-contain"
           />
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
