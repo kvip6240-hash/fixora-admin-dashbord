@@ -283,6 +283,10 @@ function handleAuthError() {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const fullUrl = buildApiUrl(path);
+  const requestController = new AbortController();
+  const requestTimeout = window.setTimeout(() => requestController.abort(), 20_000);
+  const abortFromCaller = () => requestController.abort();
+  options.signal?.addEventListener("abort", abortFromCaller, { once: true });
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -299,16 +303,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     response = await fetch(fullUrl, {
       ...options,
       headers,
+      signal: requestController.signal,
     });
   } catch (err: any) {
     const errorDetails =
-      err instanceof TypeError && err.message.includes("Failed to fetch")
-        ? `Cannot connect to backend (${getApiBaseUrl() || "relative URL"}). Check CORS or server status.`
-        : err?.message || "Network error";
+      err instanceof DOMException && err.name === "AbortError"
+        ? "The backend did not respond within 20 seconds. Please try again."
+        : err instanceof TypeError && err.message.includes("Failed to fetch")
+          ? `Cannot connect to backend (${getApiBaseUrl() || "relative URL"}). Check CORS or server status.`
+          : err?.message || "Network error";
 
     toast.error(`Connection Error: ${errorDetails}`);
     console.error(`[API Network Error] ${options.method || "GET"} ${fullUrl}:`, err);
     throw new ApiError(0, errorDetails);
+  } finally {
+    window.clearTimeout(requestTimeout);
+    options.signal?.removeEventListener("abort", abortFromCaller);
   }
 
   if (!response.ok) {
