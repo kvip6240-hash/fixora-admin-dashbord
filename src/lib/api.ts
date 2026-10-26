@@ -519,6 +519,13 @@ export interface PrepareQuotationPayload {
   remarks?: string;
 }
 
+export interface RequesterVisitingSchedule {
+  visitingDate?: string | null;
+  visitingTime?: string | null;
+  description?: string | null;
+  submittedAt?: string | null;
+}
+
 /** POST /api/admin/project-requests/:id/prepare-quotation */
 export async function prepareProjectQuotation(
   id: string,
@@ -549,6 +556,8 @@ export interface AdminRfqDetails {
   sentAt?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  requesterVisitingSchedule?: RequesterVisitingSchedule | null;
+  visitingScheduleResponseStatus?: string | null;
   projectRequestId?: {
     requestNumber?: string | null;
     title?: string | null;
@@ -830,6 +839,11 @@ export interface BookingDetails {
   };
   location?: any;
   schedule?: any;
+  quotation?: {
+    requesterVisitingSchedule?: RequesterVisitingSchedule | null;
+    visitingScheduleResponseStatus?: string | null;
+    [key: string]: unknown;
+  } | null;
   attachments?: Attachment[];
   [key: string]: unknown;
 }

@@ -97,6 +97,17 @@ function formatDateTime(rawDate?: string) {
   }
 }
 
+function getVisitingScheduleState(
+  schedule: { visitingDate?: string | null; visitingTime?: string | null; description?: string | null; submittedAt?: string | null } | null | undefined,
+  responseStatus?: string | null,
+) {
+  const submitted = Boolean(schedule && (schedule.visitingDate || schedule.visitingTime || schedule.description || schedule.submittedAt));
+  return {
+    submitted,
+    status: responseStatus || (submitted ? "Submitted" : "Awaiting Requester Response"),
+  };
+}
+
 // ─── Status & Priority Badge Styling ──────────────────────────────────────────
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -502,6 +513,11 @@ function BookingDetailsPage() {
   const company = getCompanyDetails(booking);
   const location = getLocationDetails(booking);
   const schedule = getScheduleDetails(booking);
+  const requesterVisitingSchedule = booking.quotation?.requesterVisitingSchedule;
+  const visitingScheduleState = getVisitingScheduleState(
+    requesterVisitingSchedule,
+    booking.quotation?.visitingScheduleResponseStatus,
+  );
   const { date: submittedDate, time: submittedTime } = formatDateTime(String(booking.createdAt || booking.submittedAt || ""));
   const requestNumber = typeof booking.requestNumber === "string" ? booking.requestNumber : undefined;
   const priority = booking.priority || "Medium";
@@ -734,6 +750,41 @@ function BookingDetailsPage() {
                 <p className="text-sm font-semibold text-slate-800 mt-0.5">{company.email}</p>
               </div>
             </div>
+          </Card>
+
+          <Card className="p-6 border-teal-100 bg-teal-50/20">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-teal-700" />
+              Requester Visiting Schedule
+            </h3>
+            {!visitingScheduleState.submitted ? (
+              <p className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800">
+                {visitingScheduleState.status}. The requester has not submitted a visiting schedule yet.
+              </p>
+            ) : (
+              <div className="space-y-3 border-t border-slate-200 pt-4">
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Visiting Date</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{requesterVisitingSchedule?.visitingDate || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Visiting Time</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{requesterVisitingSchedule?.visitingTime || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Response Status</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{visitingScheduleState.status}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Submitted At</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{formatDateTime(requesterVisitingSchedule?.submittedAt || undefined).date} at {formatDateTime(requesterVisitingSchedule?.submittedAt || undefined).time}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Description</p>
+                  <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{requesterVisitingSchedule?.description || "—"}</p>
+                </div>
+              </div>
+            )}
           </Card>
 
           {/* Schedule */}
