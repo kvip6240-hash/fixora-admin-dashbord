@@ -628,6 +628,7 @@ function DetailModal({
 
   // Single source of truth status normalizer
   const normalizedStatus = activeProject.status || activeProject.workflowStatus || activeProject.requestStatus || activeProject.quotationStatus || activeProject.jobStatus || "Submitted";
+  const canViewRfq = ["RFQ", "Accepted", "Published"].includes(normalizedStatus);
 
   const company = getCompanyDetails(activeProject);
   const category = getCategoryName(activeProject);
@@ -905,14 +906,6 @@ function DetailModal({
                   >
                     <span>Waiting for Requester Response</span>
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
-                    onClick={() => navigate({ to: "/admin/requests/$requestId/rfq", params: { requestId: projectId } })}
-                  >
-                    <Eye className="w-4 h-4" />
-                    View RFQ
-                  </Button>
                 </>
               )}
 
@@ -943,6 +936,22 @@ function DetailModal({
                 >
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                   <span>Published</span>
+                </Button>
+              )}
+
+              {canViewRfq && (
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
+                  onClick={() =>
+                    navigate({
+                      to: "/admin/requests/$requestId/rfq",
+                      params: { requestId: projectId },
+                    })
+                  }
+                >
+                  <Eye className="w-4 h-4" />
+                  View RFQ
                 </Button>
               )}
 

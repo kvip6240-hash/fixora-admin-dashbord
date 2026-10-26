@@ -521,6 +521,9 @@ function BookingDetailsPage() {
   const { date: submittedDate, time: submittedTime } = formatDateTime(String(booking.createdAt || booking.submittedAt || ""));
   const requestNumber = typeof booking.requestNumber === "string" ? booking.requestNumber : undefined;
   const priority = booking.priority || "Medium";
+  const canViewRfq = ["rfq", "accepted", "published"].includes(
+    (booking.status || "").trim().toLowerCase(),
+  );
 
   return (
     <AppShell
@@ -846,14 +849,6 @@ function BookingDetailsPage() {
             <Button disabled className="opacity-80 bg-amber-500/10 text-amber-700 border border-amber-300 font-semibold text-sm">
               Waiting for Requester Response
             </Button>
-            <Button
-              variant="outline"
-              className="border-teal-200 bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm"
-              onClick={() => navigate({ to: "/admin/requests/$requestId/rfq", params: { requestId: bookingId } })}
-            >
-              <Eye className="w-4 h-4" />
-              View RFQ
-            </Button>
           </>
         )}
 
@@ -881,6 +876,19 @@ function BookingDetailsPage() {
           <Button disabled className="bg-muted text-muted-foreground font-semibold text-sm cursor-not-allowed flex items-center gap-1.5 border border-slate-300">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>Published</span>
+          </Button>
+        )}
+
+        {canViewRfq && (
+          <Button
+            variant="outline"
+            className="border-teal-200 bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm"
+            onClick={() =>
+              navigate({ to: "/admin/requests/$requestId/rfq", params: { requestId: bookingId } })
+            }
+          >
+            <Eye className="w-4 h-4" />
+            View RFQ
           </Button>
         )}
 
