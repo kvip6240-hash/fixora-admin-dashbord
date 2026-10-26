@@ -841,6 +841,19 @@ function BookingDetailsPage() {
               <Send className="w-4 h-4" />
               <span>Prepare Quotation</span>
             </Button>
+            <Button
+              variant="outline"
+              className="border-teal-200 bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm"
+              onClick={() =>
+                navigate({
+                  to: "/admin/requests/$requestId/visiting-schedule",
+                  params: { requestId: bookingId },
+                })
+              }
+            >
+              <Calendar className="w-4 h-4" />
+              Visiting Schedule
+            </Button>
           </>
         )}
 

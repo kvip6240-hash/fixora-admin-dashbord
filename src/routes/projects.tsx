@@ -895,6 +895,19 @@ function DetailModal({
                     <Send className="w-5 h-5" />
                     <span>Prepare Quotation</span>
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
+                    onClick={() =>
+                      navigate({
+                        to: "/admin/requests/$requestId/visiting-schedule",
+                        params: { requestId: projectId },
+                      })
+                    }
+                  >
+                    <CalendarDays className="w-5 h-5" />
+                    Visiting Schedule
+                  </Button>
                 </>
               )}
 

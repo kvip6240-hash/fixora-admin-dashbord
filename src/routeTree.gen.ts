@@ -26,6 +26,7 @@ import { Route as AdminServiceProvidersRouteImport } from './routes/admin.servic
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminBookingsBookingIdRouteImport } from './routes/admin.bookings.$bookingId'
 import { Route as AdminRequestsRequestIdRfqRouteImport } from './routes/admin.requests.$requestId.rfq'
+import { Route as AdminRequestsRequestIdVisitingScheduleRouteImport } from './routes/admin.requests.$requestId.visiting-schedule'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -113,6 +114,12 @@ const AdminRequestsRequestIdRfqRoute =
     path: '/admin/requests/$requestId/rfq',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminRequestsRequestIdVisitingScheduleRoute =
+  AdminRequestsRequestIdVisitingScheduleRouteImport.update({
+    id: '/admin/requests/$requestId/visiting-schedule',
+    path: '/admin/requests/$requestId/visiting-schedule',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/admin/bookings/$bookingId': typeof AdminBookingsBookingIdRoute
   '/admin/requests/$requestId/rfq': typeof AdminRequestsRequestIdRfqRoute
+  '/admin/requests/$requestId/visiting-schedule': typeof AdminRequestsRequestIdVisitingScheduleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -151,6 +159,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/admin/bookings/$bookingId': typeof AdminBookingsBookingIdRoute
   '/admin/requests/$requestId/rfq': typeof AdminRequestsRequestIdRfqRoute
+  '/admin/requests/$requestId/visiting-schedule': typeof AdminRequestsRequestIdVisitingScheduleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -171,6 +180,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/admin/bookings/$bookingId': typeof AdminBookingsBookingIdRoute
   '/admin/requests/$requestId/rfq': typeof AdminRequestsRequestIdRfqRoute
+  '/admin/requests/$requestId/visiting-schedule': typeof AdminRequestsRequestIdVisitingScheduleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/bookings/$bookingId'
     | '/admin/requests/$requestId/rfq'
+    | '/admin/requests/$requestId/visiting-schedule'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/bookings/$bookingId'
     | '/admin/requests/$requestId/rfq'
+    | '/admin/requests/$requestId/visiting-schedule'
   id:
     | '__root__'
     | '/'
@@ -230,6 +242,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/bookings/$bookingId'
     | '/admin/requests/$requestId/rfq'
+    | '/admin/requests/$requestId/visiting-schedule'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -250,6 +263,7 @@ export interface RootRouteChildren {
   AdminUsersRoute: typeof AdminUsersRoute
   AdminBookingsBookingIdRoute: typeof AdminBookingsBookingIdRoute
   AdminRequestsRequestIdRfqRoute: typeof AdminRequestsRequestIdRfqRoute
+  AdminRequestsRequestIdVisitingScheduleRoute: typeof AdminRequestsRequestIdVisitingScheduleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -373,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRequestsRequestIdRfqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/requests/$requestId/visiting-schedule': {
+      id: '/admin/requests/$requestId/visiting-schedule'
+      path: '/admin/requests/$requestId/visiting-schedule'
+      fullPath: '/admin/requests/$requestId/visiting-schedule'
+      preLoaderRoute: typeof AdminRequestsRequestIdVisitingScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -394,6 +415,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminUsersRoute: AdminUsersRoute,
   AdminBookingsBookingIdRoute: AdminBookingsBookingIdRoute,
   AdminRequestsRequestIdRfqRoute: AdminRequestsRequestIdRfqRoute,
+  AdminRequestsRequestIdVisitingScheduleRoute:
+    AdminRequestsRequestIdVisitingScheduleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
