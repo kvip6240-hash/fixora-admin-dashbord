@@ -554,7 +554,10 @@ export async function prepareProjectQuotation(
   // saved quotation before retrying so the admin UI cannot create a duplicate.
   const existingBooking = await fetchBookingDetails(id);
   if (existingBooking.data?.quotation?.rfqId) {
-    throw new ApiError(409, "An RFQ already exists for this project request. No duplicate quotation was sent.");
+    throw new ApiError(
+      409,
+      "An RFQ already exists for this project request. No duplicate quotation was sent.",
+    );
   }
   return request<{ success: boolean; data?: PrepareQuotationResult; message?: string }>(
     `/api/admin/project-requests/${id}/prepare-quotation`,
