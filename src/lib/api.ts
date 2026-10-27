@@ -536,12 +536,27 @@ export interface RequesterVisitingSchedule {
   submittedAt?: string | null;
 }
 
+export interface PrepareQuotationResult {
+  rfqId: string;
+  projectRequestId: string;
+  rfqNumber: string;
+  status: string;
+  sentAt?: string;
+  [key: string]: unknown;
+}
+
 /** POST /api/admin/project-requests/:id/prepare-quotation */
 export async function prepareProjectQuotation(
   id: string,
   payload: PrepareQuotationPayload,
-): Promise<{ success: boolean; data?: ProjectRequest; message?: string }> {
-  return request<{ success: boolean; data?: ProjectRequest; message?: string }>(
+): Promise<{ success: boolean; data?: PrepareQuotationResult; message?: string }> {
+  // A timed-out submission may already have created the RFQ. Verify the request's
+  // saved quotation before retrying so the admin UI cannot create a duplicate.
+  const existingBooking = await fetchBookingDetails(id);
+  if (existingBooking.data?.quotation?.rfqId) {
+    throw new ApiError(409, "An RFQ already exists for this project request. No duplicate quotation was sent.");
+  }
+  return request<{ success: boolean; data?: PrepareQuotationResult; message?: string }>(
     `/api/admin/project-requests/${id}/prepare-quotation`,
     {
       method: "POST",
@@ -863,6 +878,7 @@ export interface BookingDetails {
   location?: any;
   schedule?: any;
   quotation?: {
+    rfqId?: string | null;
     requesterVisitingSchedule?: RequesterVisitingSchedule | null;
     visitingScheduleResponseStatus?: string | null;
     [key: string]: unknown;

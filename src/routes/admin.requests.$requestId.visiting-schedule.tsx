@@ -81,8 +81,15 @@ function VisitingSchedulePage() {
   const scheduleRequest = rfq?.visitingScheduleRequest ?? rfq?.scheduleRequest;
   const requestStatus = String(rfq?.visitingScheduleRequestStatus ?? rfq?.scheduleRequestStatus ?? scheduleRequest?.status ?? "").toLowerCase();
   const requestSentAt = rfq?.visitingScheduleRequestedAt ?? rfq?.visitingScheduleRequestSentAt ?? rfq?.scheduleRequestSentAt ?? scheduleRequest?.sentAt ?? scheduleRequest?.requestedAt;
-  const responseStatus = rfq?.visitingScheduleResponseStatus ?? rfq?.requesterVisitingSchedule?.responseStatus;
-  const hasSentRequest = Boolean(requestSentAt || responseStatus || ["pending", "sent", "requested", "accepted", "declined", "responded", "completed"].includes(requestStatus));
+  const responseStatus = String(rfq?.visitingScheduleResponseStatus ?? rfq?.requesterVisitingSchedule?.responseStatus ?? "").toLowerCase();
+  const hasSentRequest = Boolean(requestSentAt || requestStatus === "sent" || responseStatus === "submitted");
+  const rfqLoadMessage = rfqQuery.error instanceof ApiError && rfqQuery.error.status === 404
+    ? "No RFQ is linked to this project request yet. Prepare the quotation first; a Visiting Schedule request can only be sent for an existing RFQ."
+    : rfqQuery.error instanceof ApiError && [401, 403].includes(rfqQuery.error.status)
+      ? "You are not authorized to load this RFQ. Sign in with an admin account and try again."
+      : rfqQuery.error instanceof Error
+        ? rfqQuery.error.message
+        : "Unable to load RFQ details.";
 
   if (isLoading) {
     return (
@@ -128,7 +135,7 @@ function VisitingSchedulePage() {
         </Button>
       }
     >
-      {rfqQuery.isError && <Card className="mx-auto max-w-6xl border-red-200 bg-red-50 p-4 text-sm text-red-800">Unable to load RFQ status. Sending is disabled until the RFQ identity and saved status can be verified.</Card>}
+      {rfqQuery.isError && <Card className="mx-auto max-w-6xl border-red-200 bg-red-50 p-4 text-sm text-red-800">{rfqLoadMessage}</Card>}
       <div className="mx-auto max-w-6xl space-y-6">
         <Card className="border-teal-100 bg-gradient-to-r from-teal-50 to-white p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -227,9 +234,10 @@ function VisitingSchedulePage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="font-semibold text-slate-900">Visiting Schedule Request Status</h2>
-              <p className="mt-1 text-sm text-slate-600">{hasSentRequest ? (responseStatus || requestStatus || "Request sent") : "Not sent"}</p>
+              <p className="mt-1 text-sm text-slate-600">
+                {rfqQuery.isLoading ? "Checking saved RFQ status…" : !rfq ? "Unavailable" : responseStatus === "submitted" ? "Response received" : hasSentRequest ? "Request sent · awaiting requester response" : "Not sent"}
+              </p>
               {requestSentAt && <p className="mt-1 text-xs text-slate-500">Sent {formatDateTime(requestSentAt)}</p>}
-              {rfqQuery.isLoading && <p className="mt-1 text-xs text-slate-500">Checking saved RFQ status…</p>}
             </div>
             <Button
               disabled={sendMutation.isPending || hasSentRequest || !rfq?._id || rfqQuery.isLoading || rfqQuery.isError}

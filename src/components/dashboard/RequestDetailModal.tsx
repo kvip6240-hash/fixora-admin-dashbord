@@ -200,8 +200,8 @@ function PrepareRFQModal({
 
   const mutation = useMutation({
     mutationFn: (payload: PrepareQuotationPayload) => prepareProjectQuotation(projectId, payload),
-    onSuccess: () => {
-      toast.success("RFQ has been sent successfully.");
+    onSuccess: (response) => {
+      toast.success(response.message || "RFQ has been sent successfully.");
       onSuccess();
     },
     onError: (err: any) => {
