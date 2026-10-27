@@ -136,6 +136,8 @@ function RfqDetailsPage() {
   const requester = rfq.requesterId;
   const providerName = project?.assignedProvider?.companyName || project?.assignedProvider?.name;
   const visitingSchedule = rfq.requesterVisitingSchedule;
+  const scheduleRequestStatus = String(rfq.visitingScheduleRequestStatus ?? rfq.scheduleRequestStatus ?? "");
+  const scheduleRequestSentAt = (rfq.visitingScheduleRequestedAt ?? rfq.visitingScheduleRequestSentAt ?? rfq.scheduleRequestSentAt) as string | null | undefined;
   const visitingScheduleState = getVisitingScheduleState(
     visitingSchedule,
     rfq.visitingScheduleResponseStatus,
@@ -266,6 +268,10 @@ function RfqDetailsPage() {
             <CalendarDays className="h-5 w-5 text-teal-700" />
             Requester Visiting Schedule
           </h2>
+          <div className="mb-4 grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-2">
+            <Field label="Schedule Request Status" value={scheduleRequestStatus || (scheduleRequestSentAt ? "Sent" : "Not sent")} />
+            <Field label="Schedule Request Sent At" value={formatDateTime(scheduleRequestSentAt)} />
+          </div>
           {!visitingScheduleState.submitted ? (
             <p className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800">
               {visitingScheduleState.status}. The requester has not submitted a visiting schedule yet.

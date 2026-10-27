@@ -551,6 +551,7 @@ export async function prepareProjectQuotation(
 }
 
 export interface AdminRfqDetails {
+  _id?: string;
   rfqNumber?: string | null;
   status?: string | null;
   amount?: number | null;
@@ -568,6 +569,10 @@ export interface AdminRfqDetails {
   updatedAt?: string | null;
   requesterVisitingSchedule?: RequesterVisitingSchedule | null;
   visitingScheduleResponseStatus?: string | null;
+  visitingScheduleRequestStatus?: string | null;
+  visitingScheduleRequestedAt?: string | null;
+  visitingScheduleRequestSentAt?: string | null;
+  [key: string]: unknown;
   projectRequestId?: {
     requestNumber?: string | null;
     title?: string | null;
@@ -589,6 +594,14 @@ export async function fetchAdminRfqDetails(
 ): Promise<{ success: boolean; data: AdminRfqDetails }> {
   return request<{ success: boolean; data: AdminRfqDetails }>(
     `/api/admin/project-requests/${id}/rfq`,
+  );
+}
+
+/** POST /api/admin/rfqs/:rfqId/visiting-schedule-request */
+export async function sendVisitingScheduleRequest(rfqId: string): Promise<{ success: boolean; data?: unknown; message?: string }> {
+  return request<{ success: boolean; data?: unknown; message?: string }>(
+    `/api/admin/rfqs/${encodeURIComponent(rfqId)}/visiting-schedule-request`,
+    { method: "POST" },
   );
 }
 

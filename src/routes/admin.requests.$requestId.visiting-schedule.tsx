@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Building2, CalendarDays, Loader2, MapPin, Paperclip, User } from "lucide-react";
 import { AppShell, Button, Card } from "@/components/app-shell";
 import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
-import { fetchProjectRequestById } from "@/lib/api";
+import { ApiError, fetchAdminRfqDetails, fetchProjectRequestById, sendVisitingScheduleRequest } from "@/lib/api";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/requests/$requestId/visiting-schedule")({
   component: VisitingSchedulePage,
@@ -15,6 +16,12 @@ function value(input: unknown) {
 
 function hasValue(input: unknown) {
   return typeof input === "string" ? input.trim().length > 0 : typeof input === "number";
+}
+
+function formatDateTime(input?: string | null) {
+  if (!input) return "Not provided";
+  const date = new Date(input);
+  return Number.isNaN(date.getTime()) ? "Not provided" : date.toLocaleString();
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -29,6 +36,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function VisitingSchedulePage() {
   const { requestId } = Route.useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["project-request", requestId],
     queryFn: () => fetchProjectRequestById(requestId),
@@ -37,6 +45,30 @@ function VisitingSchedulePage() {
 
   const request = ((data as any)?.data ?? (data as any)?.project ?? data) as
     Record<string, any> | undefined;
+  const rfqQuery = useQuery({
+    queryKey: ["admin-rfq-details", requestId],
+    queryFn: () => fetchAdminRfqDetails(requestId),
+    enabled: Boolean(requestId && request),
+  });
+  const rfq = rfqQuery.data?.data as (Record<string, any> & { _id?: string }) | undefined;
+  const sendMutation = useMutation({
+    mutationFn: () => {
+      if (!rfq?._id) throw new Error("The RFQ ID is missing; the schedule request was not sent.");
+      return sendVisitingScheduleRequest(rfq._id);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-rfq-details", requestId] });
+      toast.success("Visiting schedule request sent.");
+    },
+    onError: async (error: unknown) => {
+      if (error instanceof ApiError && error.status === 409) {
+        await queryClient.invalidateQueries({ queryKey: ["admin-rfq-details", requestId] });
+        toast.info("A visiting schedule request was already sent. Status refreshed.");
+      } else {
+        toast.error(error instanceof Error ? error.message : "Unable to send the schedule request.");
+      }
+    },
+  });
   const requester = (request?.requesterId ?? request?.requester ?? {}) as Record<string, unknown>;
   const category =
     request?.categoryId?.name ?? request?.category?.name ?? request?.category ?? request?.service;
@@ -46,6 +78,11 @@ function VisitingSchedulePage() {
       ? location
       : (location?.address ?? request?.address ?? request?.siteAddress ?? request?.siteName);
   const attachments = Array.isArray(request?.attachments) ? request.attachments : [];
+  const scheduleRequest = rfq?.visitingScheduleRequest ?? rfq?.scheduleRequest;
+  const requestStatus = String(rfq?.visitingScheduleRequestStatus ?? rfq?.scheduleRequestStatus ?? scheduleRequest?.status ?? "").toLowerCase();
+  const requestSentAt = rfq?.visitingScheduleRequestedAt ?? rfq?.visitingScheduleRequestSentAt ?? rfq?.scheduleRequestSentAt ?? scheduleRequest?.sentAt ?? scheduleRequest?.requestedAt;
+  const responseStatus = rfq?.visitingScheduleResponseStatus ?? rfq?.requesterVisitingSchedule?.responseStatus;
+  const hasSentRequest = Boolean(requestSentAt || responseStatus || ["pending", "sent", "requested", "accepted", "declined", "responded", "completed"].includes(requestStatus));
 
   if (isLoading) {
     return (
@@ -91,6 +128,7 @@ function VisitingSchedulePage() {
         </Button>
       }
     >
+      {rfqQuery.isError && <Card className="mx-auto max-w-6xl border-red-200 bg-red-50 p-4 text-sm text-red-800">Unable to load RFQ status. Sending is disabled until the RFQ identity and saved status can be verified.</Card>}
       <div className="mx-auto max-w-6xl space-y-6">
         <Card className="border-teal-100 bg-gradient-to-r from-teal-50 to-white p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -185,27 +223,20 @@ function VisitingSchedulePage() {
           </Card>
         )}
 
-        <Card className="border-amber-200 bg-amber-50/60 p-6">
-          <div className="flex items-start gap-3">
-            <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+        <Card className="border-teal-100 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="font-semibold text-amber-900">
-                Schedule request workflow unavailable
-              </h2>
-              <p className="mt-1 text-sm text-amber-800">
-                The current admin frontend has no existing authenticated endpoint for sending a
-                visiting-schedule request. This page can safely review the selected request, but
-                cannot submit a request until the backend provides that workflow.
-              </p>
+              <h2 className="font-semibold text-slate-900">Visiting Schedule Request Status</h2>
+              <p className="mt-1 text-sm text-slate-600">{hasSentRequest ? (responseStatus || requestStatus || "Request sent") : "Not sent"}</p>
+              {requestSentAt && <p className="mt-1 text-xs text-slate-500">Sent {formatDateTime(requestSentAt)}</p>}
+              {rfqQuery.isLoading && <p className="mt-1 text-xs text-slate-500">Checking saved RFQ status…</p>}
             </div>
-          </div>
-          <div className="mt-5 flex justify-end">
             <Button
-              disabled
-              title="A schedule-request API endpoint is required before this action can be enabled."
+              disabled={sendMutation.isPending || hasSentRequest || !rfq?._id || rfqQuery.isLoading || rfqQuery.isError}
+              onClick={() => sendMutation.mutate()}
             >
-              <CalendarDays className="h-4 w-4" />
-              Send Schedule Request
+              {sendMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
+              {sendMutation.isPending ? "Sending…" : hasSentRequest ? "Schedule Request Sent" : "Send Schedule Request"}
             </Button>
           </div>
         </Card>

@@ -514,6 +514,8 @@ function BookingDetailsPage() {
   const location = getLocationDetails(booking);
   const schedule = getScheduleDetails(booking);
   const requesterVisitingSchedule = booking.quotation?.requesterVisitingSchedule;
+  const scheduleRequestStatus = String(booking.quotation?.visitingScheduleRequestStatus ?? booking.quotation?.scheduleRequestStatus ?? "");
+  const scheduleRequestSentAt = booking.quotation?.visitingScheduleRequestedAt ?? booking.quotation?.visitingScheduleRequestSentAt ?? booking.quotation?.scheduleRequestSentAt;
   const visitingScheduleState = getVisitingScheduleState(
     requesterVisitingSchedule,
     booking.quotation?.visitingScheduleResponseStatus,
@@ -760,6 +762,16 @@ function BookingDetailsPage() {
               <Calendar className="w-5 h-5 text-teal-700" />
               Requester Visiting Schedule
             </h3>
+            <div className="grid grid-cols-1 gap-3 border-b border-slate-200 pb-4 mb-4 sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Schedule Request Status</p>
+                <p className="text-sm font-semibold text-slate-800 mt-0.5">{scheduleRequestStatus || (scheduleRequestSentAt ? "Sent" : "Not sent")}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Schedule Request Sent At</p>
+                <p className="text-sm font-semibold text-slate-800 mt-0.5">{scheduleRequestSentAt ? formatDateTime(String(scheduleRequestSentAt)).date + " at " + formatDateTime(String(scheduleRequestSentAt)).time : "—"}</p>
+              </div>
+            </div>
             {!visitingScheduleState.submitted ? (
               <p className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800">
                 {visitingScheduleState.status}. The requester has not submitted a visiting schedule yet.
