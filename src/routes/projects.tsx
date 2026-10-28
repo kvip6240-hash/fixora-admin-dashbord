@@ -31,6 +31,7 @@ import {
 import { useProjectsController } from "../hooks/useProjectsController";
 import { prepareProjectQuotation, publishProjectJob, updateBookingDetails, fetchProjectRequestById, getAttachmentUrl, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
 import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
+import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
 import {
   Table,
   TableHeader,
@@ -610,6 +611,7 @@ function DetailModal({
   onPrepareSuccess: () => void;
 }) {
   const [isPrepareModalOpen, setIsPrepareModalOpen] = useState(false);
+  const [isVisitingScheduleOpen, setIsVisitingScheduleOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -898,12 +900,7 @@ function DetailModal({
                   <Button
                     variant="outline"
                     className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
-                    onClick={() =>
-                      navigate({
-                        to: "/admin/requests/$requestId/visiting-schedule",
-                        params: { requestId: projectId },
-                      })
-                    }
+                    onClick={() => setIsVisitingScheduleOpen(true)}
                   >
                     <CalendarDays className="w-5 h-5" />
                     Visiting Schedule
@@ -993,6 +990,12 @@ function DetailModal({
           }}
         />
       )}
+      <VisitingScheduleRequestDialog
+        open={isVisitingScheduleOpen}
+        onOpenChange={setIsVisitingScheduleOpen}
+        requestId={projectId}
+        request={activeProject ?? {}}
+      />
     </>
   );
 }

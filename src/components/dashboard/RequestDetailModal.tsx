@@ -28,6 +28,7 @@ import {
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/app-shell";
+import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
 import { CopyRequestId } from "@/components/CopyRequestId";
 import {
   fetchProjectRequestById,
@@ -403,6 +404,7 @@ export function RequestDetailModal({
   onQuotationSuccess?: () => void;
 }) {
   const [isPrepareOpen, setIsPrepareOpen] = useState(false);
+  const [isVisitingScheduleOpen, setIsVisitingScheduleOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -681,12 +683,7 @@ export function RequestDetailModal({
                     disabled={isLoading}
                     variant="outline"
                     className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
-                    onClick={() =>
-                      navigate({
-                        to: "/admin/requests/$requestId/visiting-schedule",
-                        params: { requestId: projectId },
-                      })
-                    }
+                    onClick={() => setIsVisitingScheduleOpen(true)}
                   >
                     <CalendarDays className="w-5 h-5" />
                     Visiting Schedule
@@ -772,6 +769,12 @@ export function RequestDetailModal({
           onSuccess={handlePrepareSuccess}
         />
       )}
+      <VisitingScheduleRequestDialog
+        open={isVisitingScheduleOpen}
+        onOpenChange={setIsVisitingScheduleOpen}
+        requestId={projectId}
+        request={project ?? {}}
+      />
     </>
   );
 }

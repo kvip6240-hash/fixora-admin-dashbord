@@ -3,6 +3,7 @@ import { AppShell, Button, Card, SectionHeader } from "@/components/app-shell";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, publishProjectJob, getAttachmentUrl, type PrepareQuotationPayload } from "@/lib/api";
 import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
+import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -444,6 +445,7 @@ function BookingDetailsPage() {
   const queryClient = useQueryClient();
 
   const [isPrepareRFQModalOpen, setIsPrepareRFQModalOpen] = useState(false);
+  const [isVisitingScheduleOpen, setIsVisitingScheduleOpen] = useState(false);
 
   const { data: bookingData, isLoading, refetch } = useQuery({
     queryKey: ["booking-details", bookingId],
@@ -793,12 +795,7 @@ function BookingDetailsPage() {
             <Button
               variant="outline"
               className="border-teal-200 bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm"
-              onClick={() =>
-                navigate({
-                  to: "/admin/requests/$requestId/visiting-schedule",
-                  params: { requestId: bookingId },
-                })
-              }
+              onClick={() => setIsVisitingScheduleOpen(true)}
             >
               <Calendar className="w-4 h-4" />
               Visiting Schedule
@@ -872,6 +869,12 @@ function BookingDetailsPage() {
           }}
         />
       )}
+      <VisitingScheduleRequestDialog
+        open={isVisitingScheduleOpen}
+        onOpenChange={setIsVisitingScheduleOpen}
+        requestId={bookingId}
+        request={booking ?? {}}
+      />
     </AppShell>
   );
 }

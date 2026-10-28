@@ -280,7 +280,11 @@ function handleAuthError() {
   window.location.href = "/login";
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  requestConfig: { suppressErrorToast?: boolean } = {},
+): Promise<T> {
   const token = getToken();
   const fullUrl = buildApiUrl(path);
   const requestController = new AbortController();
@@ -313,7 +317,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
           ? `Cannot connect to backend (${getApiBaseUrl() || "relative URL"}). Check CORS or server status.`
           : err?.message || "Network error";
 
-    toast.error(`Connection Error: ${errorDetails}`);
+    if (!requestConfig.suppressErrorToast) {
+      toast.error(`Connection Error: ${errorDetails}`);
+    }
     console.error(`[API Network Error] ${options.method || "GET"} ${fullUrl}:`, err);
     throw new ApiError(0, errorDetails);
   } finally {
@@ -332,26 +338,32 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
     switch (response.status) {
       case 401:
-        toast.error("Session expired or unauthorized. Please log in again.");
+        if (!requestConfig.suppressErrorToast) {
+          toast.error("Session expired or unauthorized. Please log in again.");
+        }
         handleAuthError();
         break;
       case 403:
-        toast.error(`Access Forbidden (403): ${message}`);
+        if (!requestConfig.suppressErrorToast) toast.error(`Access Forbidden (403): ${message}`);
         break;
       case 404:
-        toast.error(`Not Found (404): ${fullUrl}`);
+        if (!requestConfig.suppressErrorToast) toast.error(`Not Found (404): ${fullUrl}`);
         break;
       case 409:
-        toast.error(message);
+        if (!requestConfig.suppressErrorToast) toast.error(message);
         break;
       case 500:
       case 502:
       case 503:
       case 504:
-        toast.error(`Server Error (${response.status}): ${message}`);
+        if (!requestConfig.suppressErrorToast) {
+          toast.error(`Server Error (${response.status}): ${message}`);
+        }
         break;
       default:
-        toast.error(`Error (${response.status}): ${message}`);
+        if (!requestConfig.suppressErrorToast) {
+          toast.error(`Error (${response.status}): ${message}`);
+        }
         break;
     }
 
@@ -612,14 +624,25 @@ export async function fetchAdminRfqDetails(
 ): Promise<{ success: boolean; data: AdminRfqDetails }> {
   return request<{ success: boolean; data: AdminRfqDetails }>(
     `/api/admin/project-requests/${id}/rfq`,
+    {},
+    { suppressErrorToast: true },
   );
 }
 
+export interface SendVisitingScheduleRequestResponse {
+  success: boolean;
+  message?: string;
+  data?: Partial<AdminRfqDetails> & { rfqId?: string };
+}
+
 /** POST /api/admin/rfqs/:rfqId/visiting-schedule-request */
-export async function sendVisitingScheduleRequest(rfqId: string): Promise<{ success: boolean; data?: unknown; message?: string }> {
-  return request<{ success: boolean; data?: unknown; message?: string }>(
+export async function sendVisitingScheduleRequest(
+  rfqId: string,
+): Promise<SendVisitingScheduleRequestResponse> {
+  return request<SendVisitingScheduleRequestResponse>(
     `/api/admin/rfqs/${encodeURIComponent(rfqId)}/visiting-schedule-request`,
     { method: "POST" },
+    { suppressErrorToast: true },
   );
 }
 
