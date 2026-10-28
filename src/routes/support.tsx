@@ -47,7 +47,7 @@ const tickets = [
   },
   {
     id: "T-3818",
-    subject: "How do I edit an active RFQ?",
+    subject: "How do I edit an active job?",
     from: "Coleridge Hospitality",
     type: "Requester",
     priority: "Low",

@@ -104,7 +104,7 @@ function Settings() {
           <SectionHeader title="Notifications" hint="Where operations alerts are delivered" />
           <Row
             label="Broadcast delivery failures"
-            hint="Notify operations if a provider fails to receive an RFQ"
+            hint="Notify operations if a provider fails to receive a job request"
           >
             <select className="h-9 px-3 rounded-lg border border-border text-sm bg-card">
               <option>Email + In-app</option>
@@ -112,7 +112,7 @@ function Settings() {
               <option>Off</option>
             </select>
           </Row>
-          <Row label="SLA breaches" hint="RFQ review, quotation forwarding, verification">
+            <Row label="SLA breaches" hint="Job review, quotation forwarding, verification">
             <select className="h-9 px-3 rounded-lg border border-border text-sm bg-card">
               <option>Email + Slack</option>
               <option>Email only</option>

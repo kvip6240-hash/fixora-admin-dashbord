@@ -116,7 +116,7 @@ function StatusPill({ status }: { status?: string }) {
   const cls = STATUS_CLASSES[key] ?? "bg-slate-100 text-slate-600 border-slate-200";
   return (
     <Badge className={`${cls} font-medium shadow-none border`}>
-      {status || "Submitted"}
+      {key === "rfq" ? "Quotation Sent" : status || "Submitted"}
     </Badge>
   );
 }
@@ -167,11 +167,11 @@ function PrepareRFQModal({
   const mutation = useMutation({
     mutationFn: (payload: PrepareQuotationPayload) => prepareProjectQuotation(projectId, payload),
     onSuccess: (response) => {
-      toast.success(response.message || "RFQ has been sent successfully.");
+      toast.success(response.message || "Job quotation sent successfully.");
       onSuccess();
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to submit RFQ. Please check your inputs and try again.");
+      toast.error(err.message || "Failed to submit the job quotation. Please check your inputs and try again.");
     },
   });
 
@@ -220,7 +220,7 @@ function PrepareRFQModal({
               <FileCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-[18px] font-bold text-foreground leading-snug">Prepare RFQ</h2>
+              <h2 className="text-[18px] font-bold text-foreground leading-snug">Prepare Job Quotation</h2>
               <p className="text-[13px] text-muted-foreground leading-tight">Specify commercial terms and submit quotation details</p>
             </div>
           </div>
@@ -425,7 +425,7 @@ function PrepareRFQModal({
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Submit RFQ</span>
+                    <span>Submit Quotation</span>
                   </>
                 )}
               </Button>
@@ -847,7 +847,7 @@ function BookingDetailsPage() {
             }
           >
             <Eye className="w-4 h-4" />
-            View RFQ
+            View Job Details
           </Button>
         )}
 

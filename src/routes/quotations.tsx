@@ -74,7 +74,7 @@ const incoming = [
   },
 ];
 
-const compareRfq = "RFQ-24185 · Electrical rewiring — Warehouse B";
+const compareRfq = "Job 24185 · Electrical rewiring — Warehouse B";
 const compareRows = [
   {
     provider: "Bramwell Facilities Ltd",
@@ -132,7 +132,7 @@ function Quotations() {
             <thead>
               <tr className="text-[11px] uppercase tracking-wide text-muted-foreground border-y border-border bg-secondary/40">
                 <th className="px-5 py-2.5 text-left font-medium">Quotation</th>
-                <th className="px-3 py-2.5 text-left font-medium">RFQ</th>
+                <th className="px-3 py-2.5 text-left font-medium">Job</th>
                 <th className="px-3 py-2.5 text-left font-medium">Provider</th>
                 <th className="px-3 py-2.5 text-right font-medium">Amount</th>
                 <th className="px-3 py-2.5 text-left font-medium">Timeline</th>
@@ -144,7 +144,7 @@ function Quotations() {
               {incoming.map((q) => (
                 <tr key={q.id} className="hover:bg-secondary/40">
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{q.id}</td>
-                  <td className="px-3 py-3 font-mono text-xs">{q.rfq}</td>
+                  <td className="px-3 py-3 font-mono text-xs">{q.rfq.replace(/^RFQ-/i, "JOB-")}</td>
                   <td className="px-3 py-3">
                     <div className="text-sm font-medium">{q.provider}</div>
                     <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1">

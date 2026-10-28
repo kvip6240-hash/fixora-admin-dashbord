@@ -9,12 +9,12 @@ export const Route = createFileRoute("/broadcast")({
       { title: "Broadcast Center — Versal Axis" },
       {
         name: "description",
-        content: "Select verified providers and broadcast RFQs with real-time delivery tracking.",
+        content: "Select verified providers and share jobs with real-time delivery tracking.",
       },
       { property: "og:title", content: "Broadcast Center — Versal Axis" },
       {
         property: "og:description",
-        content: "Select verified providers and broadcast RFQs with real-time delivery tracking.",
+        content: "Select verified providers and share jobs with real-time delivery tracking.",
       },
     ],
   }),
@@ -75,7 +75,7 @@ function Broadcast() {
   return (
     <AppShell
       title="Broadcast Center"
-      subtitle="Manage algorithm-matched provider pools and dispatch approved RFQs."
+      subtitle="Manage algorithm-matched provider pools and dispatch approved jobs."
       actions={
         <Button size="sm">
           <Send className="w-3.5 h-3.5" />
@@ -84,9 +84,9 @@ function Broadcast() {
       }
     >
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        {/* RFQ Composer */}
+        {/* Job Composer */}
         <Card className="p-5">
-          <SectionHeader title="Broadcast draft" hint="RFQ-24188 · HVAC quarterly maintenance" />
+          <SectionHeader title="Broadcast draft" hint="Job 24188 · HVAC quarterly maintenance" />
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Requester</dt>
@@ -189,7 +189,7 @@ function Broadcast() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-[11px] uppercase tracking-wide text-muted-foreground border-y border-border bg-secondary/40">
-                  <th className="px-5 py-2.5 text-left font-medium">RFQ</th>
+                  <th className="px-5 py-2.5 text-left font-medium">Job</th>
                   <th className="px-3 py-2.5 text-right font-medium">Sent</th>
                   <th className="px-3 py-2.5 text-right font-medium">Delivered</th>
                   <th className="px-3 py-2.5 text-right font-medium">Opened</th>
@@ -204,7 +204,7 @@ function Broadcast() {
                   return (
                     <tr key={h.rfq} className="hover:bg-secondary/40">
                       <td className="px-5 py-3">
-                        <div className="text-xs font-mono text-muted-foreground">{h.rfq}</div>
+                        <div className="text-xs font-mono text-muted-foreground">{h.rfq.replace(/^RFQ-/i, "JOB-")}</div>
                         <div className="text-sm font-medium">{h.title}</div>
                       </td>
                       <td className="px-3 py-3 text-right tabular-nums">{h.sent}</td>

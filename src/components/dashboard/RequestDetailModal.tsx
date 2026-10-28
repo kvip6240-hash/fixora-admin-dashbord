@@ -152,7 +152,7 @@ function StatusBadge({ status }: { status?: string }) {
   const cls = STATUS_CLASSES[key] ?? "bg-slate-100 text-slate-600 border-slate-200";
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cls}`}>
-      {status || "—"}
+      {(status ?? "").toLowerCase() === "rfq" ? "Quotation Sent" : status || "—"}
     </span>
   );
 }
@@ -202,11 +202,11 @@ function PrepareRFQModal({
   const mutation = useMutation({
     mutationFn: (payload: PrepareQuotationPayload) => prepareProjectQuotation(projectId, payload),
     onSuccess: (response) => {
-      toast.success(response.message || "RFQ has been sent successfully.");
+      toast.success(response.message || "Job quotation sent successfully.");
       onSuccess();
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to submit RFQ. Please try again.");
+      toast.error(err.message || "Failed to submit the job quotation. Please try again.");
     },
   });
 
@@ -258,7 +258,7 @@ function PrepareRFQModal({
               <FileCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-[18px] font-bold text-foreground leading-snug">Prepare RFQ</h2>
+              <h2 className="text-[18px] font-bold text-foreground leading-snug">Prepare Job Quotation</h2>
               <p className="text-[13px] text-muted-foreground leading-tight">Specify commercial terms and submit quotation</p>
             </div>
           </div>
@@ -356,7 +356,7 @@ function PrepareRFQModal({
                 {mutation.isPending ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /><span>Submitting...</span></>
                 ) : (
-                  <><Send className="w-4 h-4" /><span>Submit RFQ</span></>
+                  <><Send className="w-4 h-4" /><span>Submit Quotation</span></>
                 )}
               </Button>
             </div>
@@ -744,7 +744,7 @@ export function RequestDetailModal({
                   }
                 >
                   <Eye className="w-4 h-4" />
-                  View RFQ
+                      View Job Details
                 </Button>
               )}
 

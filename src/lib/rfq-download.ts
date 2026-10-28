@@ -38,7 +38,7 @@ function money(value?: number | null, currency?: string | null) {
 }
 
 function identifier(rfq: AdminRfqDetails) {
-  return (rfq.rfqNumber || rfq.projectRequestId?.requestNumber || "RFQ").replace(
+  return (rfq.rfqNumber?.replace(/^RFQ-/i, "JOB-") || rfq.projectRequestId?.requestNumber || "JOB").replace(
     /[^a-zA-Z0-9_-]/g,
     "-",
   );
@@ -49,9 +49,9 @@ function record(rfq: AdminRfqDetails) {
   const requester = rfq.requesterId;
   const provider = project?.assignedProvider;
   return {
-    "RFQ Number": text(rfq.rfqNumber),
+    "Job Number": text(rfq.rfqNumber?.replace(/^RFQ-/i, "JOB-")),
     "Request Number": text(project?.requestNumber),
-    Status: text(rfq.status),
+    Status: (rfq.status ?? "").toLowerCase() === "rfq" ? "Quotation Sent" : text(rfq.status),
     Requester: text(requester?.companyName),
     "Company Name": text(requester?.companyName),
     Email: text(requester?.email),
@@ -99,7 +99,7 @@ async function downloadPdf(rfq: AdminRfqDetails, invoice: boolean) {
   const project = rfq.projectRequestId;
   const requester = rfq.requesterId;
   const provider = project?.assignedProvider;
-  const file = `Versal-Axis-${invoice ? "Invoice" : "RFQ"}-${identifier(rfq)}.pdf`;
+  const file = `Versal-Axis-${invoice ? "Invoice" : "Job"}-${identifier(rfq)}.pdf`;
   const logo = await loadPdfLogo();
   let y = 53;
   const space = (height: number) => {
@@ -138,13 +138,13 @@ async function downloadPdf(rfq: AdminRfqDetails, invoice: boolean) {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text(invoice ? "INVOICE" : "REQUEST FOR QUOTATION", 16, 35);
+  doc.text(invoice ? "INVOICE" : "JOB QUOTATION", 16, 35);
   doc.setFontSize(10);
-  doc.text(`RFQ: ${text(rfq.rfqNumber)}`, 145, 19);
+  doc.text(`Job: ${text(rfq.rfqNumber?.replace(/^RFQ-/i, "JOB-"))}`, 145, 19);
   doc.text(`Request: ${text(project?.requestNumber)}`, 145, 27);
 
-  section("RFQ Summary");
-  line("RFQ Status", text(rfq.status));
+  section("Job Summary");
+  line("Job Status", (rfq.status ?? "").toLowerCase() === "rfq" ? "Quotation Sent" : text(rfq.status));
   line("Created Date", dateText(rfq.createdAt));
   line("Sent Date", dateText(rfq.sentAt));
   section("Requester Information");
@@ -182,17 +182,17 @@ export async function downloadRfqData(rfq: AdminRfqDetails, format: RfqDownloadF
   if (format === "excel") {
     const worksheet = XLSX.utils.json_to_sheet([data]);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "RFQ Data");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Job Data");
     const bytes = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     downloadBlob(
       new Blob([bytes], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       }),
-      `Versal-Axis-RFQ-${id}.xlsx`,
+      `Versal-Axis-Job-${id}.xlsx`,
     );
     return;
   }
   const headers = Object.keys(data);
   const csv = `\uFEFF${headers.map(csvValue).join(",")}\r\n${headers.map((key) => csvValue(data[key as keyof typeof data])).join(",")}\r\n`;
-  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `Versal-Axis-RFQ-${id}.csv`);
+  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `Versal-Axis-Job-${id}.csv`);
 }

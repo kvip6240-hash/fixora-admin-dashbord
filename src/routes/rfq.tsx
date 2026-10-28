@@ -10,17 +10,17 @@ import { downloadBlob } from "@/lib/download";
 export const Route = createFileRoute("/rfq")({
   head: () => ({
     meta: [
-      { title: "RFQ Management — Versal Axis" },
+      { title: "Jobs — Versal Axis" },
       {
         name: "description",
         content:
-          "Review, approve, reject and broadcast incoming Requests for Quotation across the marketplace.",
+          "Review, approve, reject and share incoming jobs across the marketplace.",
       },
-      { property: "og:title", content: "RFQ Management — Versal Axis" },
+      { property: "og:title", content: "Jobs — Versal Axis" },
       {
         property: "og:description",
         content:
-          "Review, approve, reject and broadcast incoming Requests for Quotation across the marketplace.",
+          "Review, approve, reject and share incoming jobs across the marketplace.",
       },
     ],
   }),
@@ -129,9 +129,9 @@ function RFQ() {
     try {
       const { blob, filename } = await exportAdminCsv("rfqs");
       downloadBlob(blob, filename);
-      toast.success("RFQs exported successfully.");
+      toast.success("Jobs exported successfully.");
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Unable to export RFQs.");
+      toast.error(error instanceof Error ? error.message : "Unable to export jobs.");
     } finally {
       setIsExporting(false);
     }
@@ -139,7 +139,7 @@ function RFQ() {
 
   return (
     <AppShell
-      title="RFQ Management"
+      title="Jobs"
       subtitle="Review and approve incoming requests from requesters."
       actions={
         <>
@@ -156,7 +156,7 @@ function RFQ() {
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
-            placeholder="Search by RFQ ID, title, requester…"
+            placeholder="Search by job ID, title, requester…"
             className="w-full h-9 pl-9 pr-3 rounded-lg bg-secondary/60 border border-transparent focus:border-primary focus:bg-card outline-none text-sm"
           />
         </div>
@@ -200,7 +200,7 @@ function RFQ() {
                 <th className="px-4 py-3 text-left w-8">
                   <input type="checkbox" className="rounded" />
                 </th>
-                <th className="px-3 py-3 text-left font-medium">RFQ</th>
+                <th className="px-3 py-3 text-left font-medium">Job</th>
                 <th className="px-3 py-3 text-left font-medium">Requester</th>
                 <th className="px-3 py-3 text-left font-medium">Category</th>
                 <th className="px-3 py-3 text-left font-medium">Priority</th>
@@ -217,7 +217,7 @@ function RFQ() {
                     <input type="checkbox" className="rounded" />
                   </td>
                   <td className="px-3 py-3">
-                    <div className="text-xs font-mono text-muted-foreground">{r.id}</div>
+                    <div className="text-xs font-mono text-muted-foreground">{r.id.replace(/^RFQ-/i, "JOB-")}</div>
                     <div className="text-sm font-medium">{r.title}</div>
                   </td>
                   <td className="px-3 py-3">
@@ -258,7 +258,7 @@ function RFQ() {
           </table>
         </div>
         <div className="px-4 py-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-          <span>Showing 7 of 128 RFQs</span>
+          <span>Showing 7 of 128 jobs</span>
           <div className="flex items-center gap-1">
             <Button variant="outline" size="sm">
               Previous

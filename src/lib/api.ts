@@ -568,7 +568,7 @@ export async function prepareProjectQuotation(
   if (existingBooking.data?.quotation?.rfqId) {
     throw new ApiError(
       409,
-      "An RFQ already exists for this project request. No duplicate quotation was sent.",
+      "A job quotation already exists for this project request. No duplicate quotation was sent.",
     );
   }
   return request<{ success: boolean; data?: PrepareQuotationResult; message?: string }>(

@@ -293,7 +293,7 @@ function StatusBadge({ status }: { status?: string }) {
 
   return (
     <Badge className={`${styleClass} font-medium hover:opacity-90 shadow-none border`}>
-      {rawStatus}
+      {s === "rfq" ? "Quotation Sent" : rawStatus}
     </Badge>
   );
 }
@@ -330,11 +330,11 @@ function PrepareRFQModal({
   const prepareMutation = useMutation({
     mutationFn: (payload: PrepareQuotationPayload) => prepareProjectQuotation(projectId, payload),
     onSuccess: (response) => {
-      toast.success(response.message || "RFQ has been sent successfully.");
+      toast.success(response.message || "Job quotation sent successfully.");
       onSuccess();
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to submit RFQ. Please check your inputs and try again.");
+      toast.error(err.message || "Failed to submit the job quotation. Please check your inputs and try again.");
     },
   });
 
@@ -383,7 +383,7 @@ function PrepareRFQModal({
               <FileCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-[18px] font-bold text-foreground leading-snug">Prepare RFQ</h2>
+              <h2 className="text-[18px] font-bold text-foreground leading-snug">Prepare Job Quotation</h2>
               <p className="text-[13px] text-muted-foreground leading-tight">Specify commercial terms and submit quotation details</p>
             </div>
           </div>
@@ -588,7 +588,7 @@ function PrepareRFQModal({
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Submit RFQ</span>
+                    <span>Submit Quotation</span>
                   </>
                 )}
               </Button>
@@ -961,7 +961,7 @@ function DetailModal({
                   }
                 >
                   <Eye className="w-4 h-4" />
-                  View RFQ
+                  View Job Details
                 </Button>
               )}
 
@@ -1112,7 +1112,7 @@ function ProjectRequestsPage() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by RFQ ID, company, title, or service..."
+              placeholder="Search by job request number, company, title, or service..."
               value={clientSearch}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full h-9 pl-9 pr-8 rounded-lg bg-secondary/50 border border-border/80 focus:border-primary focus:bg-card outline-none text-sm placeholder:text-muted-foreground transition-all"
@@ -1152,7 +1152,7 @@ function ProjectRequestsPage() {
                     : "bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
-                {st}
+                {st === "RFQ" ? "Quotation Sent" : st}
               </button>
             ))}
           </div>
@@ -1166,7 +1166,7 @@ function ProjectRequestsPage() {
             <TableHeader className="sticky top-0 z-20 bg-muted/90 backdrop-blur-md shadow-xs border-b border-border">
               <TableRow className="hover:bg-transparent border-border">
                 <TableHead className="w-[140px] font-semibold text-xs text-foreground uppercase tracking-wider py-3.5">
-                  RFQ ID
+                  Job Request
                 </TableHead>
                 <TableHead className="min-w-[220px] font-semibold text-xs text-foreground uppercase tracking-wider py-3.5">
                   Company
@@ -1305,7 +1305,7 @@ function ProjectRequestsPage() {
                       onClick={() => openDetail(String(req._id || req.id), req)}
                       className="cursor-pointer hover:bg-muted/60 transition-colors border-border/60"
                     >
-                      {/* Column 1: RFQ ID */}
+                      {/* Column 1: Job Request Number */}
                       <TableCell className="font-mono text-xs font-medium text-foreground py-3.5">
                         {reqIdDisplay}
                       </TableCell>

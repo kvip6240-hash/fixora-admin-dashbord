@@ -107,21 +107,21 @@ function RfqDetailsPage() {
 
   if (isLoading)
     return (
-      <AppShell title="RFQ Details">
+      <AppShell title="Job Details">
         <div className="flex h-64 items-center justify-center text-slate-500">
           <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-          Loading RFQ…
+          Loading job details…
         </div>
       </AppShell>
     );
 
   if (isError || !rfq) {
-    const message = error instanceof Error ? error.message : "Unable to load the RFQ.";
+    const message = error instanceof Error ? error.message : "Unable to load the job details.";
     return (
-      <AppShell title="RFQ Details" subtitle="The requested RFQ is unavailable.">
+      <AppShell title="Job Details" subtitle="The requested job is unavailable.">
         <Card className="mx-auto max-w-xl p-6 text-center">
           <FileCheck className="mx-auto h-10 w-10 text-slate-400" />
-          <h2 className="mt-3 text-lg font-semibold text-slate-900">Unable to load RFQ</h2>
+          <h2 className="mt-3 text-lg font-semibold text-slate-900">Unable to load job</h2>
           <p className="mt-1 text-sm text-slate-600">{message}</p>
           <Button className="mt-5" variant="outline" onClick={backToRequest}>
             <ArrowLeft className="h-4 w-4" />
@@ -146,7 +146,7 @@ function RfqDetailsPage() {
     setDownloading(format);
     try {
       await downloadRfqData(rfq, format);
-      toast.success("RFQ download started.");
+      toast.success("Job download started.");
     } catch (downloadError: unknown) {
       toast.error(
         downloadError instanceof Error ? downloadError.message : "Unable to generate the download.",
@@ -158,7 +158,7 @@ function RfqDetailsPage() {
 
   return (
     <AppShell
-      title="RFQ Details"
+      title="Job Details"
       subtitle="Prepared quotation sent to the requester"
       actions={
         <div className="flex items-center gap-2">
@@ -179,14 +179,14 @@ function RfqDetailsPage() {
                 Download Invoice PDF
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => download("rfq-pdf")}>
-                Download RFQ PDF
+                Download Job PDF
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => download("excel")}>
-                Download RFQ Data - Excel
+                Download Job Data - Excel
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => download("csv")}>
-                Download RFQ Data - CSV
+                Download Job Data - CSV
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -202,15 +202,15 @@ function RfqDetailsPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">
-                  Request for quotation
+                  Job quotation
                 </p>
                 <span className="mt-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                  {rfq.status || "Not provided"}
+                  {(rfq.status ?? "").toLowerCase() === "rfq" ? "Quotation Sent" : rfq.status || "Not provided"}
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-              <Field label="RFQ Number" value={rfq.rfqNumber} />
+              <Field label="Job Number" value={rfq.rfqNumber?.replace(/^RFQ-/i, "JOB-")} />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Request Number
@@ -246,8 +246,8 @@ function RfqDetailsPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Service Category" value={project?.categoryId?.name} />
               <Field label="Assigned Provider" value={providerName} />
-              <Field label="Project Request Status" value={project?.status} />
-              <Field label="RFQ Status" value={rfq.status} />
+              <Field label="Project Request Status" value={(project?.status ?? "").toLowerCase() === "rfq" ? "Quotation Sent" : project?.status} />
+              <Field label="Job Status" value={(rfq.status ?? "").toLowerCase() === "rfq" ? "Quotation Sent" : rfq.status} />
             </div>
           </Card>
         </div>
@@ -292,7 +292,7 @@ function RfqDetailsPage() {
         <Card className="p-6">
           <h2 className="mb-5 flex items-center gap-2 border-b pb-3 text-lg font-semibold text-slate-900">
             <FileCheck className="h-5 w-5 text-teal-700" />
-            RFQ / Quotation
+            Job Quotation
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Amount" value={formatMoney(rfq.amount, rfq.currency)} />
@@ -321,7 +321,7 @@ function RfqDetailsPage() {
         <Card className="p-6">
           <h2 className="mb-5 flex items-center gap-2 border-b pb-3 text-lg font-semibold text-slate-900">
             <CalendarDays className="h-5 w-5 text-teal-700" />
-            RFQ Timeline
+            Job Timeline
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Field label="Prepared" value={formatDateTime(rfq.createdAt)} />

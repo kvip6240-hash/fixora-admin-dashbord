@@ -75,8 +75,8 @@ function readErrorMessage(error: unknown, subject: string): string {
   if (error.status === 401)
     return "Your admin session is no longer authorized. Sign in again, then retry.";
   if (error.status === 403) return "Your account is not authorized to view this information.";
-  if (error.status === 404 && subject === "RFQ status")
-    return "No RFQ is linked to this project request yet. Prepare the quotation first; schedule requests require an existing RFQ.";
+  if (error.status === 404 && subject === "Job status")
+    return "No job quotation is linked to this project request yet. Prepare the quotation first; schedule requests require an existing job quotation.";
   if (error.status === 404) return `${subject} was not found.`;
   if (error.status >= 500)
     return `The server could not load ${subject} (${error.status}). Retry in a moment.`;
@@ -142,7 +142,7 @@ function VisitingSchedulePage() {
   const sendMutation = useMutation({
     mutationFn: () => {
       if (!rfq?._id)
-        throw new Error("The RFQ ID is not verified. The schedule request was not sent.");
+        throw new Error("The linked job quotation could not be verified. The schedule request was not sent.");
       return sendVisitingScheduleRequest(rfq._id);
     },
     onSuccess: async (response) => {
@@ -169,7 +169,7 @@ function VisitingSchedulePage() {
           );
         } else {
           toast.error(
-            "The server reported a duplicate request, but the saved status could not be confirmed. Retry loading the RFQ status.",
+            "The server reported a duplicate request, but the saved status could not be confirmed. Retry loading the job status.",
           );
         }
       } else {
@@ -348,11 +348,11 @@ function VisitingSchedulePage() {
               <h2 className="font-semibold text-slate-900">Visiting Schedule Request Status</h2>
               <p className="mt-1 text-sm text-slate-600">
                 {rfqQuery.isLoading
-                  ? "Checking saved RFQ status…"
+                  ? "Checking saved job status…"
                   : rfqQuery.isError
-                    ? "RFQ status unavailable"
+                    ? "Job status unavailable"
                     : !rfq?._id
-                      ? "No linked RFQ"
+                      ? "No linked job quotation"
                       : responseStatus === "submitted"
                         ? "Response received"
                         : hasSentRequest
@@ -370,11 +370,11 @@ function VisitingSchedulePage() {
               {rfqQuery.isError && (
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <p role="alert" className="text-sm text-red-700">
-                    {readErrorMessage(rfqQuery.error, "RFQ status")}
+                    {readErrorMessage(rfqQuery.error, "Job status")}
                   </p>
                   <Button variant="outline" size="sm" onClick={() => void rfqQuery.refetch()}>
                     <RefreshCw className="h-4 w-4" />
-                    Retry RFQ status
+                    Retry job status
                   </Button>
                 </div>
               )}

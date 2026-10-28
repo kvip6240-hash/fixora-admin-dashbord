@@ -108,7 +108,7 @@ function Awards() {
             <thead>
               <tr className="text-[11px] uppercase tracking-wide text-muted-foreground border-y border-border bg-secondary/40">
                 <th className="px-5 py-2.5 text-left font-medium">Award</th>
-                <th className="px-3 py-2.5 text-left font-medium">RFQ</th>
+                <th className="px-3 py-2.5 text-left font-medium">Job</th>
                 <th className="px-3 py-2.5 text-left font-medium">Requester</th>
                 <th className="px-3 py-2.5 text-left font-medium">Winning Provider</th>
                 <th className="px-3 py-2.5 text-right font-medium">Value</th>
@@ -120,7 +120,7 @@ function Awards() {
               {awards.map((a) => (
                 <tr key={a.id} className="hover:bg-secondary/40">
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{a.id}</td>
-                  <td className="px-3 py-3 font-mono text-xs">{a.rfq}</td>
+                  <td className="px-3 py-3 font-mono text-xs">{a.rfq.replace(/^RFQ-/i, "JOB-")}</td>
                   <td className="px-3 py-3">{a.requester}</td>
                   <td className="px-3 py-3 font-medium">{a.provider}</td>
                   <td className="px-3 py-3 text-right font-semibold tabular-nums">{a.value}</td>

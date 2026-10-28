@@ -225,7 +225,7 @@ function AdminCategoriesPage() {
   return (
     <AppShell
       title="Platform Categories Console"
-      subtitle="Configure and manage service categories dynamically for Versal Axis RFQs and Providers."
+      subtitle="Configure and manage service categories dynamically for Versal Axis jobs and providers."
     >
       {/* Search and Filters */}
       <Card className="p-4 mb-6 shadow-xs border border-border">

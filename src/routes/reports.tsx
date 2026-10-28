@@ -10,13 +10,13 @@ export const Route = createFileRoute("/reports")({
       {
         name: "description",
         content:
-          "Marketplace analytics on RFQ throughput, conversion, commission and category mix.",
+          "Marketplace analytics on jobs, conversion, commission and category mix.",
       },
       { property: "og:title", content: "Reports & Analytics — Versal Axis Admin" },
       {
         property: "og:description",
         content:
-          "Marketplace analytics on RFQ throughput, conversion, commission and category mix.",
+          "Marketplace analytics on jobs, conversion, commission and category mix.",
       },
     ],
   }),
@@ -110,7 +110,7 @@ function Reports() {
     >
       <div className="grid grid-cols-1 min-[600px]:grid-cols-2 min-[1024px]:grid-cols-4 gap-4">
         {[
-          { l: "RFQ Throughput", v: typeof rfqThroughput === "number" ? rfqThroughput.toLocaleString() : rfqThroughput, d: rfqGrowth },
+          { l: "Jobs Created", v: typeof rfqThroughput === "number" ? rfqThroughput.toLocaleString() : rfqThroughput, d: rfqGrowth },
           { l: "Quotation Rate", v: quotationRate, d: quotationRateGrowth },
           { l: "Award Conversion", v: awardConversion, d: awardGrowth },
           { l: "Avg. Commission", v: averageCommission, d: commissionStatus },
@@ -125,7 +125,7 @@ function Reports() {
 
       <Card className="p-5 mt-6">
         <SectionHeader
-          title="RFQ volume — trailing 12 months"
+          title="Jobs created — trailing 12 months"
           hint="Requests submitted per month"
         />
         <div className="flex items-end gap-2 h-56">
@@ -143,7 +143,7 @@ function Reports() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
         <Card className="p-5">
-          <SectionHeader title="Category mix" hint="Share of RFQ value" />
+          <SectionHeader title="Category mix" hint="Share of job quotation value" />
           {categoryMix.map((c) => (
             <div key={c.l} className="mb-3 last:mb-0">
               <div className="flex justify-between text-xs mb-1">

@@ -20,7 +20,7 @@ const nav: Array<{
   exact?: boolean;
 }> = [
     { label: "Dashboard", to: "/", icon: LayoutDashboard, exact: true },
-    { label: "RFQ Management", to: "/rfq", icon: FileText },
+    { label: "Jobs", to: "/rfq", icon: FileText },
     { label: "Projects", to: "/projects", icon: Briefcase },
     { label: "Payments", to: "/payments", icon: Wallet },
     { label: "Companies", to: "/companies", icon: Building2 },
@@ -116,7 +116,7 @@ export function AppShell({
           <div className="flex-1 max-w-lg relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
-              placeholder="Search RFQs, quotations, providers…"
+              placeholder="Search jobs, quotations, providers…"
               className="w-full h-9 pl-9 pr-3 rounded-lg bg-secondary/60 border border-transparent focus:border-primary focus:bg-card outline-none text-sm placeholder:text-muted-foreground"
             />
           </div>
