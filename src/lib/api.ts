@@ -646,6 +646,17 @@ export async function sendVisitingScheduleRequest(
   );
 }
 
+/** POST /api/admin/project-requests/:projectRequestId/visiting-schedule-request */
+export async function sendProjectRequestVisitingScheduleRequest(
+  projectRequestId: string,
+): Promise<{ success: boolean; message?: string }> {
+  return request<{ success: boolean; message?: string }>(
+    `/api/admin/project-requests/${encodeURIComponent(projectRequestId)}/visiting-schedule-request`,
+    { method: "POST" },
+    { suppressErrorToast: true },
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Users & Service Providers
 // ─────────────────────────────────────────────────────────────────────────────

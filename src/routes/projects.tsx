@@ -993,7 +993,7 @@ function DetailModal({
       <VisitingScheduleRequestDialog
         open={isVisitingScheduleOpen}
         onOpenChange={setIsVisitingScheduleOpen}
-        requestId={projectId}
+        projectRequestId={projectId}
         request={activeProject ?? {}}
       />
     </>

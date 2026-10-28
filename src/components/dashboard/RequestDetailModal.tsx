@@ -772,7 +772,7 @@ export function RequestDetailModal({
       <VisitingScheduleRequestDialog
         open={isVisitingScheduleOpen}
         onOpenChange={setIsVisitingScheduleOpen}
-        requestId={projectId}
+        projectRequestId={projectId}
         request={project ?? {}}
       />
     </>
