@@ -1152,6 +1152,105 @@ export async function exportReportFile(
 
 export type AdminCsvExport = "bookings" | "rfqs" | "payments";
 
+export interface AdminJob {
+  _id: string;
+  requestNumber: string;
+  rfqId: string;
+  rfqNumber?: string;
+  title: string;
+  companyName: string | null;
+  region: string | null;
+  category: string | null;
+  categoryId: string | null;
+  priority?: "Low" | "Medium" | "High" | "Emergency";
+  status: string;
+  value: number;
+  amount: number;
+  currency?: string | null;
+  submittedAt: string;
+  acceptedAt: string;
+  actions: { details: string; publish: string | null };
+}
+
+export interface AdminJobsQuery {
+  search?: string;
+  priority?: string;
+  status?: string;
+  region?: string;
+  category?: string;
+  tab?: "All" | "Waiting Review" | "Approved" | "Broadcast" | "Rejected";
+  page?: number;
+  limit?: number;
+}
+
+export interface AdminJobsResponse {
+  success: boolean;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  data: AdminJob[];
+}
+
+function buildAdminJobsQuery(params: AdminJobsQuery = {}): string {
+  const query = new URLSearchParams();
+  for (const key of ["search", "priority", "status", "region", "category", "tab"] as const) {
+    const value = params[key];
+    if (value?.trim()) query.set(key, value.trim());
+  }
+  if (params.page) query.set("page", String(params.page));
+  if (params.limit) query.set("limit", String(params.limit));
+  return query.toString();
+}
+
+/** GET /api/admin/jobs */
+export async function fetchAdminJobs(
+  params: AdminJobsQuery = {},
+  signal?: AbortSignal,
+): Promise<AdminJobsResponse> {
+  const query = buildAdminJobsQuery(params);
+  return request<AdminJobsResponse>(`/api/admin/jobs${query ? `?${query}` : ""}`, { signal });
+}
+
+/** GET /api/admin/jobs/export?format=csv */
+export async function exportAdminJobsCsv(
+  params: AdminJobsQuery = {},
+): Promise<{ blob: Blob; filename: string }> {
+  const token = getToken();
+  const query = buildAdminJobsQuery(params);
+  const fullUrl = buildApiUrl(`/api/admin/jobs/export?format=csv${query ? `&${query}` : ""}`);
+
+  let response: Response;
+  try {
+    response = await fetch(fullUrl, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  } catch (err: unknown) {
+    throw new ApiError(0, err instanceof Error ? err.message : "Unable to connect to the Jobs export service.");
+  }
+
+  if (!response.ok) {
+    let message = `Unable to export jobs (${response.status}).`;
+    try {
+      const body = await response.json();
+      message = body?.message || message;
+    } catch {
+      // Error responses may be empty or plain text.
+    }
+    if (response.status === 401) handleAuthError();
+    throw new ApiError(response.status, message);
+  }
+
+  return {
+    blob: await response.blob(),
+    filename: getDownloadFilename(response.headers.get("Content-Disposition"), "fixora-jobs.csv"),
+  };
+}
+
 function getDownloadFilename(contentDisposition: string | null, fallback: string): string {
   const match = contentDisposition?.match(/filename="?([^";]+)"?/i);
   return match?.[1] || fallback;

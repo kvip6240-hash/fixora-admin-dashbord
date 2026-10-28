@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell, Card, SectionHeader, Pill, Button } from "@/components/app-shell";
-import { useRfqController } from "../hooks/useRfqController";
-import { Download, CheckCircle2, XCircle, Eye, Search, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { AppShell, Card, Pill, Button } from "@/components/app-shell";
+import { ApiError, exportAdminJobsCsv, fetchAdminJobs, type AdminJob, type AdminJobsQuery } from "@/lib/api";
+import { Download, Eye, Search, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { exportAdminCsv } from "@/lib/api";
 import { downloadBlob } from "@/lib/download";
 
 export const Route = createFileRoute("/rfq")({
@@ -27,107 +27,93 @@ export const Route = createFileRoute("/rfq")({
   component: RFQ,
 });
 
-const rows = [
-  {
-    id: "RFQ-24188",
-    title: "HVAC quarterly maintenance — 12 sites",
-    requester: "Whitmore Retail Group",
-    region: "London",
-    category: "HVAC",
-    priority: "High",
-    status: "Waiting Review",
-    value: "£42,000",
-    created: "22 Jul, 10:14",
-  },
-  {
-    id: "RFQ-24187",
-    title: "Emergency roof leak repair",
-    requester: "Northlake Logistics",
-    region: "Manchester",
-    category: "Building",
-    priority: "Critical",
-    status: "Waiting Review",
-    value: "£8,400",
-    created: "22 Jul, 09:02",
-  },
-  {
-    id: "RFQ-24186",
-    title: "Annual fire safety inspection",
-    requester: "Coleridge Hospitality",
-    region: "Edinburgh",
-    category: "Compliance",
-    priority: "Medium",
-    status: "Approved",
-    value: "£15,200",
-    created: "21 Jul, 16:40",
-  },
-  {
-    id: "RFQ-24185",
-    title: "Electrical rewiring — Warehouse B",
-    requester: "Kingsford Manufacturing",
-    region: "Leeds",
-    category: "Electrical",
-    priority: "High",
-    status: "Broadcast",
-    value: "£67,300",
-    created: "21 Jul, 11:23",
-  },
-  {
-    id: "RFQ-24184",
-    title: "Landscaping & grounds contract 2026",
-    requester: "Ashbury Property Trust",
-    region: "Bristol",
-    category: "Grounds",
-    priority: "Low",
-    status: "Waiting Review",
-    value: "£23,800",
-    created: "20 Jul, 14:08",
-  },
-  {
-    id: "RFQ-24183",
-    title: "CCTV upgrade across 4 branches",
-    requester: "Meridian Financial",
-    region: "Birmingham",
-    category: "Security",
-    priority: "Medium",
-    status: "Broadcast",
-    value: "£18,900",
-    created: "20 Jul, 09:47",
-  },
-  {
-    id: "RFQ-24182",
-    title: "Lift servicing — annual programme",
-    requester: "Ravenhill Estates",
-    region: "Glasgow",
-    category: "Mechanical",
-    priority: "Medium",
-    status: "Rejected",
-    value: "£11,600",
-    created: "19 Jul, 15:11",
-  },
-];
-
 const priorityTone = (p: string) =>
-  p === "Critical" ? "destructive" : p === "High" ? "warning" : p === "Medium" ? "info" : "muted";
+  p === "Emergency" ? "destructive" : p === "High" ? "warning" : p === "Medium" ? "info" : "muted";
 const statusTone = (s: string) =>
-  s === "Waiting Review"
-    ? "warning"
-    : s === "Broadcast"
+  s === "Accepted" || s === "Completed"
+    ? "success"
+    : s === "Published" || s === "Assigned" || s === "In Progress"
       ? "info"
-      : s === "Approved"
-        ? "success"
-        : s === "Rejected"
-          ? "destructive"
-          : "muted";
+      : s === "Cancelled" || s === "Rejected"
+        ? "destructive"
+        : "muted";
+
+const tabs: NonNullable<AdminJobsQuery["tab"]>[] = ["All", "Waiting Review", "Approved", "Broadcast", "Rejected"];
+const businessStatuses = ["Accepted", "Published", "Assigned", "In Progress", "Completed", "Cancelled"];
+const pageSize = 10;
+
+function formatAmount(job: AdminJob): string {
+  if (typeof job.value !== "number" || !job.currency) return "—";
+  try {
+    return new Intl.NumberFormat("en-GB", { style: "currency", currency: job.currency }).format(job.value);
+  } catch {
+    return `${job.currency} ${job.value.toLocaleString("en-GB")}`;
+  }
+}
+
+function formatSubmittedAt(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "—"
+    : new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
 
 function RFQ() {
-  const controller = useRfqController();
+  const navigate = useNavigate();
+  const [jobs, setJobs] = useState<AdminJob[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [priority, setPriority] = useState("");
+  const [status, setStatus] = useState("");
+  const [region, setRegion] = useState("");
+  const [category, setCategory] = useState("");
+  const [tab, setTab] = useState<NonNullable<AdminJobsQuery["tab"]>>("All");
+  const [page, setPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setSearch(searchInput.trim()), 300);
+    return () => window.clearTimeout(timeout);
+  }, [searchInput]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params: AdminJobsQuery = { search, priority, status, region, category, tab, page, limit: pageSize };
+    setIsLoading(true);
+    setLoadError(null);
+    fetchAdminJobs(params, controller.signal)
+      .then((response) => {
+        setJobs(response.data);
+        setTotal(response.pagination.total);
+        setTotalPages(response.pagination.totalPages);
+        setHasNextPage(response.pagination.hasNextPage);
+        setHasPrevPage(response.pagination.hasPrevPage);
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        const message = error instanceof ApiError ? error.message : "Unable to load jobs. Please try again.";
+        setLoadError(message);
+        setJobs([]);
+        setTotal(0);
+        setTotalPages(0);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+    return () => controller.abort();
+  }, [search, priority, status, region, category, tab, page, reloadKey]);
 
   const exportRfqs = async () => {
     setIsExporting(true);
     try {
-      const { blob, filename } = await exportAdminCsv("rfqs");
+      const { blob, filename } = await exportAdminJobsCsv({ search, priority, status, region, category, tab });
       downloadBlob(blob, filename);
       toast.success("Jobs exported successfully.");
     } catch (error: unknown) {
@@ -156,38 +142,36 @@ function RFQ() {
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
-            placeholder="Search by job ID, title, requester…"
+            value={searchInput}
+            onChange={(event) => { setSearchInput(event.target.value); setPage(1); }}
+            placeholder="Search by job number, title, requester…"
             className="w-full h-9 pl-9 pr-3 rounded-lg bg-secondary/60 border border-transparent focus:border-primary focus:bg-card outline-none text-sm"
           />
         </div>
-        {["Priority", "Status", "Region", "Category"].map((f) => (
-          <button
-            key={f}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-secondary/60 hover:bg-secondary text-sm"
-          >
-            {f}
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-          </button>
-        ))}
-        <Button variant="outline" size="sm">
-          Advanced
-        </Button>
+        <label className="relative inline-flex items-center">
+          <select aria-label="Priority" value={priority} onChange={(event) => { setPriority(event.target.value); setPage(1); }} className="appearance-none h-9 pl-3 pr-8 rounded-lg bg-secondary/60 hover:bg-secondary text-sm">
+            <option value="">All Priorities</option><option>Low</option><option>Medium</option><option>High</option><option>Emergency</option>
+          </select><ChevronDown className="pointer-events-none absolute right-2 w-3.5 h-3.5 text-muted-foreground" />
+        </label>
+        <label className="relative inline-flex items-center">
+          <select aria-label="Status" value={status} onChange={(event) => { setStatus(event.target.value); setTab("All"); setPage(1); }} className="appearance-none h-9 pl-3 pr-8 rounded-lg bg-secondary/60 hover:bg-secondary text-sm">
+            <option value="">All Statuses</option>{businessStatuses.map((item) => <option key={item}>{item}</option>)}
+          </select><ChevronDown className="pointer-events-none absolute right-2 w-3.5 h-3.5 text-muted-foreground" />
+        </label>
+        <input aria-label="Region" value={region} onChange={(event) => { setRegion(event.target.value); setPage(1); }} placeholder="Region" className="h-9 w-28 px-3 rounded-lg bg-secondary/60 border border-transparent focus:border-primary focus:bg-card outline-none text-sm" />
+        <input aria-label="Category" value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }} placeholder="Category" className="h-9 w-32 px-3 rounded-lg bg-secondary/60 border border-transparent focus:border-primary focus:bg-card outline-none text-sm" />
       </Card>
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mt-5 border-b border-border">
-        {[
-          ["All", 128],
-          ["Waiting Review", 48],
-          ["Approved", 33],
-          ["Broadcast", 17],
-          ["Rejected", 6],
-        ].map(([label, count], i) => (
+        {tabs.map((label) => (
           <button
-            key={label as string}
-            className={`px-3.5 py-2.5 text-sm font-medium -mb-px border-b-2 ${i === 0 ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            key={label}
+            onClick={() => { setTab(label); setStatus(""); setPage(1); }}
+            aria-current={tab === label ? "page" : undefined}
+            className={`px-3.5 py-2.5 text-sm font-medium -mb-px border-b-2 ${tab === label ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           >
-            {label} <span className="ml-1 text-[11px] text-muted-foreground">{count}</span>
+            {label}
           </button>
         ))}
       </div>
@@ -211,44 +195,38 @@ function RFQ() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((r) => (
-                <tr key={r.id} className="hover:bg-secondary/40">
+              {isLoading ? (
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading jobs…</td></tr>
+              ) : loadError ? (
+                <tr><td colSpan={9} className="px-4 py-10 text-center"><div className="text-destructive">{loadError}</div><button className="mt-2 text-sm text-primary hover:underline" onClick={() => setReloadKey((current) => current + 1)}>Retry</button></td></tr>
+              ) : jobs.length === 0 ? (
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No jobs found for these filters.</td></tr>
+              ) : jobs.map((job) => (
+                <tr key={job._id} className="hover:bg-secondary/40">
                   <td className="px-4 py-3">
                     <input type="checkbox" className="rounded" />
                   </td>
                   <td className="px-3 py-3">
-                    <div className="text-xs font-mono text-muted-foreground">{r.id.replace(/^RFQ-/i, "JOB-")}</div>
-                    <div className="text-sm font-medium">{r.title}</div>
+                    <div className="text-xs font-mono text-muted-foreground">{job.requestNumber || job._id}</div>
+                    <div className="text-sm font-medium">{job.title}</div>
                   </td>
                   <td className="px-3 py-3">
-                    <div className="text-sm">{r.requester}</div>
-                    <div className="text-[11px] text-muted-foreground">{r.region}</div>
+                    <div className="text-sm">{job.companyName || "Requester / company unavailable"}</div>
+                    <div className="text-[11px] text-muted-foreground">{job.region || "—"}</div>
                   </td>
-                  <td className="px-3 py-3 text-sm">{r.category}</td>
+                  <td className="px-3 py-3 text-sm">{job.category || "—"}</td>
                   <td className="px-3 py-3">
-                    <Pill tone={priorityTone(r.priority) as never}>{r.priority}</Pill>
+                    <Pill tone={priorityTone(job.priority || "") as never}>{job.priority || "—"}</Pill>
                   </td>
                   <td className="px-3 py-3">
-                    <Pill tone={statusTone(r.status) as never}>{r.status}</Pill>
+                    <Pill tone={statusTone(job.status) as never}>{job.status}</Pill>
                   </td>
-                  <td className="px-3 py-3 text-right font-medium tabular-nums">{r.value}</td>
-                  <td className="px-3 py-3 text-muted-foreground">{r.created}</td>
+                  <td className="px-3 py-3 text-right font-medium tabular-nums">{formatAmount(job)}</td>
+                  <td className="px-3 py-3 text-muted-foreground">{formatSubmittedAt(job.submittedAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <button className="p-1.5 rounded-md hover:bg-secondary" title="View">
+                      <button className="p-1.5 rounded-md hover:bg-secondary" title="View Job Details" aria-label={`View job ${job.requestNumber}`} onClick={() => navigate({ to: "/admin/requests/$requestId/rfq", params: { requestId: job._id } })}>
                         <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        className="p-1.5 rounded-md hover:bg-secondary text-[oklch(0.55_0.14_155)]"
-                        title="Approve"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        className="p-1.5 rounded-md hover:bg-secondary text-destructive"
-                        title="Reject"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </td>
@@ -258,12 +236,13 @@ function RFQ() {
           </table>
         </div>
         <div className="px-4 py-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-          <span>Showing 7 of 128 jobs</span>
+          <span>{total === 0 ? "Showing 0 jobs" : `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total} jobs`}</span>
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" disabled={isLoading || !hasPrevPage || page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>
               Previous
             </Button>
-            <Button variant="outline" size="sm">
+            <span className="px-2">{page}{totalPages > 0 ? ` / ${totalPages}` : ""}</span>
+            <Button variant="outline" size="sm" disabled={isLoading || !hasNextPage} onClick={() => setPage((current) => current + 1)}>
               Next
             </Button>
           </div>
