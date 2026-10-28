@@ -872,6 +872,7 @@ function BookingDetailsPage() {
       <VisitingScheduleRequestDialog
         open={isVisitingScheduleOpen}
         onOpenChange={setIsVisitingScheduleOpen}
+        projectRequestId={booking?._id}
         request={booking ?? {}}
       />
     </AppShell>

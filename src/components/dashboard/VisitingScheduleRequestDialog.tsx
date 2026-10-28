@@ -52,7 +52,9 @@ export function VisitingScheduleRequestDialog({
   const resolvedProjectRequestId =
     projectRequestId ??
     (typeof linkedProjectRequest === "string" ? linkedProjectRequest : undefined) ??
-    text(linkedProjectRequestRecord?._id);
+    text(linkedProjectRequestRecord?._id) ??
+    text(request._id) ??
+    text(request.id);
   const requestNumber = request.requestNumber;
   const title = request.projectTitle ?? request.title;
   const requesterName = request.requesterName ?? location?.contactName ?? requester?.name;
