@@ -91,7 +91,9 @@ function getRequesterDetails(raw: any): { name: string; email: string; phone: st
   const req = unwrap(raw);
   const user = req.requesterId || req.requester || req.user || req.userId || {};
   const isObj = typeof user === "object";
-  const name = isObj ? (user.name || user.fullName || req.requesterName || "—") : String(user || "—");
+  const name = isObj
+    ? (user.name || user.fullName || user.contactPersonName || req.requesterName || req.contactPersonName || user.companyName || req.companyName || "—")
+    : String(user || req.requesterName || req.companyName || "—");
   const email = isObj ? (user.email || req.requesterEmail || req.email || "—") : "—";
   const phone = isObj ? (user.phone || user.mobile || req.requesterPhone || req.phone || "—") : (req.phone || "—");
   return { name, email, phone };

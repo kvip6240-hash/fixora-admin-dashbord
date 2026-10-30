@@ -176,7 +176,9 @@ function getRequesterDetails(reqInput: any): { name: string; email: string; phon
   const req = reqInput.data ?? reqInput.project ?? reqInput;
   const user = req.requesterId || req.requester || req.user || req.userId || req.client || req.customer || {};
 
-  const name = typeof user === "object" ? (user.name || user.fullName || req.requesterName || "—") : String(user || "—");
+  const name = typeof user === "object"
+    ? (user.name || user.fullName || user.contactPersonName || req.requesterName || req.contactPersonName || user.companyName || req.companyName || "—")
+    : String(user || req.requesterName || req.companyName || "—");
   const email = typeof user === "object" ? (user.email || req.requesterEmail || req.email || "—") : "—";
   const phone = typeof user === "object" ? (user.phone || user.mobile || req.requesterPhone || req.phone || "—") : (req.phone || "—");
 
