@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck2, LoaderCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/app-shell";
 import {
@@ -8,13 +7,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { fetchProjectRequestById, type ProjectRequest } from "@/lib/api";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projectRequestId: string;
   fallbackRequestNumber?: string;
+  request: unknown;
+  isLoading?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
 };
 
 type DataRecord = Record<string, unknown>;
@@ -51,17 +52,13 @@ function Detail({ label, value }: { label: string; value: string }) {
 export function SubmittedVisitingScheduleDialog({
   open,
   onOpenChange,
-  projectRequestId,
   fallbackRequestNumber,
+  request: requestData,
+  isLoading = false,
+  error,
+  onRetry,
 }: Props) {
-  const { data, isFetching, isError, error, refetch } = useQuery<ProjectRequest>({
-    queryKey: ["submitted-visiting-schedule", projectRequestId],
-    queryFn: () => fetchProjectRequestById(projectRequestId),
-    enabled: open && Boolean(projectRequestId),
-    staleTime: 0,
-  });
-
-  const response = asRecord(data);
+  const response = asRecord(requestData);
   const request = asRecord(response?.data) ?? asRecord(response?.project) ?? response;
   const schedule = asRecord(request?.requesterVisitingSchedule);
   const hasSchedule = Boolean(schedule);
@@ -95,16 +92,16 @@ export function SubmittedVisitingScheduleDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {isFetching ? (
+        {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground" role="status">
             <LoaderCircle className="h-4 w-4 animate-spin" /> Loading submitted schedule…
           </div>
-        ) : isError ? (
+        ) : error ? (
           <div className="space-y-3 py-5 text-center" role="alert">
             <p className="text-sm text-destructive">
               {error instanceof Error ? error.message : "Unable to load the submitted visiting schedule."}
             </p>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
+            <Button variant="outline" size="sm" onClick={onRetry} disabled={!onRetry}>
               <RefreshCw className="mr-2 h-4 w-4" /> Retry
             </Button>
           </div>

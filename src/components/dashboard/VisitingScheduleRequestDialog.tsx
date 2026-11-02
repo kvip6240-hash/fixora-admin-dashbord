@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -42,8 +42,15 @@ export function VisitingScheduleRequestDialog({
 }) {
   const queryClient = useQueryClient();
   const [isSending, setIsSending] = useState(false);
+  const [isBlockedByConflict, setIsBlockedByConflict] = useState(false);
   const [error, setError] = useState<string>();
   const sendLock = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      setIsBlockedByConflict(false);
+      setError(undefined);
+    }
+  }, [open]);
   const requester = asRecord(request.requesterId);
   const company = asRecord(request.company);
   const location = asRecord(request.location);
@@ -63,16 +70,24 @@ export function VisitingScheduleRequestDialog({
   const phone = request.requesterPhone ?? location?.contactNumber ?? company?.phone ?? requester?.phone;
 
   const handleSend = async () => {
-    if (!resolvedProjectRequestId || sendLock.current) return;
+    if (!resolvedProjectRequestId || sendLock.current || isBlockedByConflict) return;
     sendLock.current = true;
     setIsSending(true);
     setError(undefined);
     try {
       const result = await sendProjectRequestVisitingScheduleRequest(resolvedProjectRequestId);
-      if (result?.success !== true) {
+      if (result?.success !== true || result.data?.visitingScheduleRequestStatus !== "Sent") {
         throw new Error(result?.message || "The server did not confirm the schedule request.");
       }
-      void Promise.all([
+      queryClient.setQueryData(["project-request", resolvedProjectRequestId], (previous: unknown) => {
+        const current = asRecord(previous);
+        if (!current) return previous;
+        const currentData = asRecord(current.data);
+        return currentData
+          ? { ...current, data: { ...currentData, ...result.data } }
+          : { ...current, ...result.data };
+      });
+      await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["project-request", resolvedProjectRequestId] }),
         queryClient.invalidateQueries({ queryKey: ["project-requests"] }),
         queryClient.invalidateQueries({ queryKey: ["recent-project-requests"] }),
@@ -81,6 +96,10 @@ export function VisitingScheduleRequestDialog({
       toast.success(result.message || "Visiting schedule request sent.");
       onOpenChange(false);
     } catch (sendError) {
+      if (sendError instanceof ApiError && sendError.status === 409 && resolvedProjectRequestId) {
+        setIsBlockedByConflict(true);
+        await queryClient.invalidateQueries({ queryKey: ["project-request", resolvedProjectRequestId] });
+      }
       const message =
         sendError instanceof ApiError
           ? sendError.status === 409
@@ -100,8 +119,16 @@ export function VisitingScheduleRequestDialog({
     }
   };
 
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setIsBlockedByConflict(false);
+      setError(undefined);
+    }
+    onOpenChange(nextOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Send Visiting Schedule Request</DialogTitle>
@@ -149,12 +176,12 @@ export function VisitingScheduleRequestDialog({
         ) : null}
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" disabled={isSending} onClick={() => onOpenChange(false)}>
+          <Button variant="outline" disabled={isSending} onClick={() => handleDialogOpenChange(false)}>
             Cancel
           </Button>
-          <Button disabled={!resolvedProjectRequestId || isSending} onClick={handleSend}>
+          <Button disabled={!resolvedProjectRequestId || isSending || isBlockedByConflict} onClick={handleSend}>
             {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
-            {isSending ? "Sending…" : "Send Schedule Request"}
+            {isSending ? "Sending…" : isBlockedByConflict ? "Refresh Request Status" : "Send Schedule Request"}
           </Button>
         </DialogFooter>
       </DialogContent>

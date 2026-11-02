@@ -33,6 +33,7 @@ import { prepareProjectQuotation, publishProjectJob, updateBookingDetails, fetch
 import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
 import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
 import { SubmittedVisitingScheduleDialog } from "@/components/dashboard/SubmittedVisitingScheduleDialog";
+import { canSendVisitingScheduleRequest, hasSubmittedVisitingSchedule } from "@/lib/visiting-schedule-state";
 import {
   Table,
   TableHeader,
@@ -623,7 +624,14 @@ function DetailModal({
   const projectId = String(initialProject._id || initialProject.id);
 
   // Background fetch to ensure the modal always displays the absolute latest status
-  const { data: fetchedProject } = useQuery<ProjectRequest>({
+  const {
+    data: fetchedProject,
+    isFetching: isProjectFetching,
+    isError: isProjectError,
+    isFetchedAfterMount: hasFreshProjectDetails,
+    error: projectError,
+    refetch: refetchProject,
+  } = useQuery<ProjectRequest>({
     queryKey: ["project-request", projectId],
     queryFn: () => fetchProjectRequestById(projectId),
     initialData: initialProject,
@@ -635,6 +643,9 @@ function DetailModal({
   // Single source of truth status normalizer
   const normalizedStatus = activeProject.status || activeProject.workflowStatus || activeProject.requestStatus || activeProject.quotationStatus || activeProject.jobStatus || "Submitted";
   const canViewRfq = ["RFQ", "Accepted", "Published"].includes(normalizedStatus);
+  const scheduleStateVerified = hasFreshProjectDetails && !isProjectFetching && !isProjectError;
+  const canStartScheduleRequest = scheduleStateVerified && canSendVisitingScheduleRequest(activeProject);
+  const hasCustomerSchedule = hasSubmittedVisitingSchedule(activeProject);
 
   const company = getCompanyDetails(activeProject);
   const category = getCategoryName(activeProject);
@@ -901,14 +912,16 @@ function DetailModal({
                     <Send className="w-5 h-5" />
                     <span>Prepare Quotation</span>
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
-                    onClick={() => setIsVisitingScheduleOpen(true)}
-                  >
-                    <CalendarDays className="w-5 h-5" />
-                    Visiting Schedule
-                  </Button>
+                  {canStartScheduleRequest && (
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
+                      onClick={() => setIsVisitingScheduleOpen(true)}
+                    >
+                      <CalendarDays className="w-5 h-5" />
+                      Visiting Schedule
+                    </Button>
+                  )}
                 </>
               )}
 
@@ -969,6 +982,7 @@ function DetailModal({
                 </Button>
               )}
 
+              {hasCustomerSchedule && (
               <Button
                 variant="outline"
                 className="w-full sm:w-auto border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-semibold px-5 py-2.5 rounded-xl"
@@ -977,6 +991,7 @@ function DetailModal({
                 <CalendarDays className="w-4 h-4" />
                 View Submitted Visiting Schedule
               </Button>
+              )}
 
               {normalizedStatus === "Rejected" && (
                 <Button
@@ -1012,8 +1027,11 @@ function DetailModal({
       <SubmittedVisitingScheduleDialog
         open={isSubmittedScheduleOpen}
         onOpenChange={setIsSubmittedScheduleOpen}
-        projectRequestId={projectId}
         fallbackRequestNumber={String(reqNumber)}
+        request={activeProject}
+        isLoading={isProjectFetching}
+        error={isProjectError ? projectError : undefined}
+        onRetry={() => void refetchProject()}
       />
     </>
   );

@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/app-shell";
 import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
 import { SubmittedVisitingScheduleDialog } from "@/components/dashboard/SubmittedVisitingScheduleDialog";
+import { canSendVisitingScheduleRequest, hasSubmittedVisitingSchedule } from "@/lib/visiting-schedule-state";
 import { CopyRequestId } from "@/components/CopyRequestId";
 import {
   fetchProjectRequestById,
@@ -412,7 +413,15 @@ export function RequestDetailModal({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: fetched, isLoading } = useQuery({
+  const {
+    data: fetched,
+    isLoading,
+    isFetching,
+    isError,
+    isFetchedAfterMount: hasFreshProjectDetails,
+    error: projectError,
+    refetch: refetchProject,
+  } = useQuery({
     queryKey: ["project-request", projectId],
     queryFn: () => fetchProjectRequestById(projectId),
     initialData: () => queryClient.getQueryData<ProjectRequest>(["project-request", projectId]),
@@ -426,6 +435,9 @@ export function RequestDetailModal({
   // Single source of truth status normalizer
   const normalizedStatus = project?.status || project?.workflowStatus || project?.requestStatus || project?.quotationStatus || project?.jobStatus || "Submitted";
   const canViewRfq = ["RFQ", "Accepted", "Published"].includes(normalizedStatus);
+  const scheduleStateVerified = hasFreshProjectDetails && !isFetching && !isError;
+  const canStartScheduleRequest = scheduleStateVerified && canSendVisitingScheduleRequest(project);
+  const hasCustomerSchedule = hasSubmittedVisitingSchedule(project);
 
   const requester = getRequesterDetails(project);
   const company = getCompanyDetails(project);
@@ -683,15 +695,17 @@ export function RequestDetailModal({
                     <Send className="w-5 h-5" />
                     <span>Prepare Quotation</span>
                   </Button>
-                  <Button
-                    disabled={isLoading}
-                    variant="outline"
-                    className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
-                    onClick={() => setIsVisitingScheduleOpen(true)}
-                  >
-                    <CalendarDays className="w-5 h-5" />
-                    Visiting Schedule
-                  </Button>
+                  {canStartScheduleRequest && (
+                    <Button
+                      disabled={isLoading}
+                      variant="outline"
+                      className="w-full sm:w-auto border-teal-200 text-teal-700 hover:bg-teal-50 font-semibold px-5 py-2.5 rounded-xl"
+                      onClick={() => setIsVisitingScheduleOpen(true)}
+                    >
+                      <CalendarDays className="w-5 h-5" />
+                      Visiting Schedule
+                    </Button>
+                  )}
                 </>
               )}
 
@@ -752,6 +766,7 @@ export function RequestDetailModal({
                 </Button>
               )}
 
+              {hasCustomerSchedule && (
               <Button
                 disabled={isLoading}
                 variant="outline"
@@ -761,6 +776,7 @@ export function RequestDetailModal({
                 <CalendarDays className="w-4 h-4" />
                 View Submitted Visiting Schedule
               </Button>
+              )}
 
               {normalizedStatus === "Rejected" && (
                 <Button
@@ -792,8 +808,11 @@ export function RequestDetailModal({
       <SubmittedVisitingScheduleDialog
         open={isSubmittedScheduleOpen}
         onOpenChange={setIsSubmittedScheduleOpen}
-        projectRequestId={projectId}
         fallbackRequestNumber={requestNumber}
+        request={project}
+        isLoading={isFetching}
+        error={isError ? projectError : undefined}
+        onRetry={() => void refetchProject()}
       />
     </>
   );

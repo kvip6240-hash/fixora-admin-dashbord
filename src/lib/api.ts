@@ -445,6 +445,8 @@ export interface ProjectRequest {
   createdAt?: string;
   description?: string;
   requesterVisitingSchedule?: RequesterVisitingSchedule | null;
+  visitingScheduleRequestStatus?: string | null;
+  visitingScheduleRequestedAt?: string | null;
   visitingScheduleResponseStatus?: string | null;
   [key: string]: unknown;
 }
@@ -656,8 +658,30 @@ export async function sendVisitingScheduleRequest(
 /** POST /api/admin/project-requests/:projectRequestId/visiting-schedule-request */
 export async function sendProjectRequestVisitingScheduleRequest(
   projectRequestId: string,
-): Promise<{ success: boolean; message?: string }> {
-  return request<{ success: boolean; message?: string }>(
+): Promise<{
+  success: boolean;
+  message?: string;
+  data?: {
+    projectRequestId: string;
+    visitingScheduleRequestStatus: string;
+    visitingScheduleRequestedAt: string | null;
+    visitingScheduleNotificationStatus: string;
+    requesterVisitingSchedule: RequesterVisitingSchedule | null;
+    visitingScheduleResponseStatus: string;
+  };
+}> {
+  return request<{
+    success: boolean;
+    message?: string;
+    data?: {
+      projectRequestId: string;
+      visitingScheduleRequestStatus: string;
+      visitingScheduleRequestedAt: string | null;
+      visitingScheduleNotificationStatus: string;
+      requesterVisitingSchedule: RequesterVisitingSchedule | null;
+      visitingScheduleResponseStatus: string;
+    };
+  }>(
     `/api/admin/project-requests/${encodeURIComponent(projectRequestId)}/visiting-schedule-request`,
     { method: "POST" },
     { suppressErrorToast: true },
