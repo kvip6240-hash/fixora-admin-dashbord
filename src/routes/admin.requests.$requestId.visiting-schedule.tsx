@@ -135,14 +135,28 @@ function VisitingSchedulePage() {
   const requestSentAt = rfq?.visitingScheduleRequestedAt;
   const requestSentAtText = formatDateTime(requestSentAt);
   const responseSubmittedAt = formatDateTime(requesterSchedule?.submittedAt);
+  const hasRequesterSchedule = Boolean(
+    requesterSchedule &&
+    [
+      requesterSchedule.visitingDate,
+      requesterSchedule.visitingTime,
+      requesterSchedule.description,
+      requesterSchedule.submittedAt,
+    ].some(present),
+  );
   const hasSentRequest = Boolean(
-    requestSentAt || requestStatus === "sent" || responseStatus === "submitted",
+    requestSentAt ||
+    requestStatus === "sent" ||
+    responseStatus === "submitted" ||
+    hasRequesterSchedule,
   );
 
   const sendMutation = useMutation({
     mutationFn: () => {
       if (!rfq?._id)
-        throw new Error("The linked job quotation could not be verified. The schedule request was not sent.");
+        throw new Error(
+          "The linked job quotation could not be verified. The schedule request was not sent.",
+        );
       return sendVisitingScheduleRequest(rfq._id);
     },
     onSuccess: async (response) => {
@@ -353,7 +367,7 @@ function VisitingSchedulePage() {
                     ? "Job status unavailable"
                     : !rfq?._id
                       ? "No linked job quotation"
-                      : responseStatus === "submitted"
+                      : hasRequesterSchedule
                         ? "Response received"
                         : hasSentRequest
                           ? "Request sent · awaiting requester response"
@@ -362,7 +376,7 @@ function VisitingSchedulePage() {
               {requestSentAtText && (
                 <p className="mt-1 text-xs text-slate-500">Sent {requestSentAtText}</p>
               )}
-              {responseStatus === "submitted" && responseSubmittedAt && (
+              {hasRequesterSchedule && responseSubmittedAt && (
                 <p className="mt-1 text-xs text-slate-500">
                   Response received {responseSubmittedAt}
                 </p>
@@ -402,7 +416,7 @@ function VisitingSchedulePage() {
             </Button>
           </div>
         </Card>
-        {responseStatus === "submitted" && (
+        {hasRequesterSchedule && (
           <Card className="p-6">
             <h2 className="mb-4 border-b pb-3 text-lg font-semibold text-slate-900">
               Requester Visiting Schedule Response
