@@ -430,6 +430,11 @@ export type Attachment = string | CloudinaryAttachment;
 
 export interface ProjectRequest {
   _id: string;
+  requestNumber?: string | null;
+  requesterName?: string | null;
+  requesterEmail?: string | null;
+  requesterPhone?: string | null;
+  companyName?: string | null;
   title?: string;
   status?: string;
   category?: string | { name: string; [key: string]: unknown };
@@ -439,6 +444,8 @@ export interface ProjectRequest {
   attachments?: Attachment[];
   createdAt?: string;
   description?: string;
+  requesterVisitingSchedule?: RequesterVisitingSchedule | null;
+  visitingScheduleResponseStatus?: string | null;
   [key: string]: unknown;
 }
 

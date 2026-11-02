@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/app-shell";
 import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
+import { SubmittedVisitingScheduleDialog } from "@/components/dashboard/SubmittedVisitingScheduleDialog";
 import { CopyRequestId } from "@/components/CopyRequestId";
 import {
   fetchProjectRequestById,
@@ -407,6 +408,7 @@ export function RequestDetailModal({
 }) {
   const [isPrepareOpen, setIsPrepareOpen] = useState(false);
   const [isVisitingScheduleOpen, setIsVisitingScheduleOpen] = useState(false);
+  const [isSubmittedScheduleOpen, setIsSubmittedScheduleOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -750,6 +752,16 @@ export function RequestDetailModal({
                 </Button>
               )}
 
+              <Button
+                disabled={isLoading}
+                variant="outline"
+                className="w-full sm:w-auto border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-semibold px-5 py-2.5 rounded-xl"
+                onClick={() => setIsSubmittedScheduleOpen(true)}
+              >
+                <CalendarDays className="w-4 h-4" />
+                View Submitted Visiting Schedule
+              </Button>
+
               {normalizedStatus === "Rejected" && (
                 <Button
                   disabled
@@ -776,6 +788,12 @@ export function RequestDetailModal({
         onOpenChange={setIsVisitingScheduleOpen}
         projectRequestId={projectId}
         request={project ?? {}}
+      />
+      <SubmittedVisitingScheduleDialog
+        open={isSubmittedScheduleOpen}
+        onOpenChange={setIsSubmittedScheduleOpen}
+        projectRequestId={projectId}
+        fallbackRequestNumber={requestNumber}
       />
     </>
   );

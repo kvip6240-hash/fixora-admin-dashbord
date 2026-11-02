@@ -32,6 +32,7 @@ import { useProjectsController } from "../hooks/useProjectsController";
 import { prepareProjectQuotation, publishProjectJob, updateBookingDetails, fetchProjectRequestById, getAttachmentUrl, type ProjectRequest, type PrepareQuotationPayload } from "@/lib/api";
 import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
 import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
+import { SubmittedVisitingScheduleDialog } from "@/components/dashboard/SubmittedVisitingScheduleDialog";
 import {
   Table,
   TableHeader,
@@ -614,6 +615,7 @@ function DetailModal({
 }) {
   const [isPrepareModalOpen, setIsPrepareModalOpen] = useState(false);
   const [isVisitingScheduleOpen, setIsVisitingScheduleOpen] = useState(false);
+  const [isSubmittedScheduleOpen, setIsSubmittedScheduleOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -967,6 +969,15 @@ function DetailModal({
                 </Button>
               )}
 
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-semibold px-5 py-2.5 rounded-xl"
+                onClick={() => setIsSubmittedScheduleOpen(true)}
+              >
+                <CalendarDays className="w-4 h-4" />
+                View Submitted Visiting Schedule
+              </Button>
+
               {normalizedStatus === "Rejected" && (
                 <Button
                   disabled
@@ -997,6 +1008,12 @@ function DetailModal({
         onOpenChange={setIsVisitingScheduleOpen}
         projectRequestId={projectId}
         request={activeProject ?? {}}
+      />
+      <SubmittedVisitingScheduleDialog
+        open={isSubmittedScheduleOpen}
+        onOpenChange={setIsSubmittedScheduleOpen}
+        projectRequestId={projectId}
+        fallbackRequestNumber={String(reqNumber)}
       />
     </>
   );
