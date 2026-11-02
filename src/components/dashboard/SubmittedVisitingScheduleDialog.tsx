@@ -62,6 +62,15 @@ export function SubmittedVisitingScheduleDialog({
   const request = asRecord(response?.data) ?? asRecord(response?.project) ?? response;
   const schedule = asRecord(request?.requesterVisitingSchedule);
   const hasSchedule = Boolean(schedule);
+  const requestedAt = typeof request?.visitingScheduleRequestedAt === "string"
+    ? new Date(request.visitingScheduleRequestedAt).getTime()
+    : Number.NaN;
+  const scheduleSubmittedAt = typeof schedule?.submittedAt === "string"
+    ? new Date(schedule.submittedAt).getTime()
+    : Number.NaN;
+  const isPreviousSchedule = Number.isFinite(requestedAt)
+    && Number.isFinite(scheduleSubmittedAt)
+    && scheduleSubmittedAt < requestedAt;
   const location = asRecord(request?.location);
   const company = asRecord(request?.company);
   const requester = asRecord(request?.requesterId);
@@ -121,6 +130,11 @@ export function SubmittedVisitingScheduleDialog({
                 <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
                   <CalendarCheck2 className="h-4 w-4" /> Received
                 </div>
+                {isPreviousSchedule && (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                    This is the previous submitted schedule. The latest request is awaiting a customer response.
+                  </p>
+                )}
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Detail label="Visiting Date" value={formatDate(schedule?.visitingDate)} />
                   <Detail label="Visiting Time" value={displayText(schedule?.visitingTime)} />

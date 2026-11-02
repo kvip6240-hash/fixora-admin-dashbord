@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, publishProjectJob, getAttachmentUrl, type PrepareQuotationPayload } from "@/lib/api";
 import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
 import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
+import { SubmittedVisitingScheduleDialog } from "@/components/dashboard/SubmittedVisitingScheduleDialog";
+import { canSendVisitingScheduleRequest, hasSubmittedVisitingSchedule, isScheduleRequestWaiting } from "@/lib/visiting-schedule-state";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -446,6 +448,7 @@ function BookingDetailsPage() {
 
   const [isPrepareRFQModalOpen, setIsPrepareRFQModalOpen] = useState(false);
   const [isVisitingScheduleOpen, setIsVisitingScheduleOpen] = useState(false);
+  const [isSubmittedScheduleOpen, setIsSubmittedScheduleOpen] = useState(false);
 
   const { data: bookingData, isLoading, refetch } = useQuery({
     queryKey: ["booking-details", bookingId],
@@ -506,6 +509,12 @@ function BookingDetailsPage() {
   const schedule = getScheduleDetails(booking);
   const { date: submittedDate, time: submittedTime } = formatDateTime(String(booking.createdAt || booking.submittedAt || ""));
   const requestNumber = typeof booking.requestNumber === "string" ? booking.requestNumber : undefined;
+  // GET /api/admin/bookings/:id returns this lifecycle both at the ProjectRequest
+  // root and in `visitingSchedule`; prefer the explicit schedule object.
+  const scheduleLifecycle = booking.visitingSchedule ?? booking;
+  const canStartScheduleRequest = canSendVisitingScheduleRequest(scheduleLifecycle);
+  const hasCustomerSchedule = hasSubmittedVisitingSchedule(scheduleLifecycle);
+  const isScheduleWaitingForCustomer = isScheduleRequestWaiting(scheduleLifecycle);
   const priority = booking.priority || "Medium";
   const canViewRfq = ["rfq", "accepted", "published"].includes(
     (booking.status || "").trim().toLowerCase(),
@@ -792,14 +801,31 @@ function BookingDetailsPage() {
               <Send className="w-4 h-4" />
               <span>Prepare Quotation</span>
             </Button>
-            <Button
-              variant="outline"
-              className="border-teal-200 bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm"
-              onClick={() => setIsVisitingScheduleOpen(true)}
-            >
-              <Calendar className="w-4 h-4" />
-              Visiting Schedule
-            </Button>
+            {canStartScheduleRequest && (
+              <Button
+                variant="outline"
+                className="border-teal-200 bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm"
+                onClick={() => setIsVisitingScheduleOpen(true)}
+              >
+                <Calendar className="w-4 h-4" />
+                Visiting Schedule
+              </Button>
+            )}
+            {isScheduleWaitingForCustomer && (
+              <Button disabled variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 font-semibold text-sm cursor-not-allowed">
+                Waiting for Customer
+              </Button>
+            )}
+            {hasCustomerSchedule && (
+              <Button
+                variant="outline"
+                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-semibold text-sm"
+                onClick={() => setIsSubmittedScheduleOpen(true)}
+              >
+                <Calendar className="w-4 h-4" />
+                View Submitted Schedule
+              </Button>
+            )}
           </>
         )}
 
@@ -874,6 +900,12 @@ function BookingDetailsPage() {
         onOpenChange={setIsVisitingScheduleOpen}
         projectRequestId={booking?._id}
         request={booking ?? {}}
+      />
+      <SubmittedVisitingScheduleDialog
+        open={isSubmittedScheduleOpen}
+        onOpenChange={setIsSubmittedScheduleOpen}
+        fallbackRequestNumber={requestNumber}
+        request={{ ...booking, ...scheduleLifecycle }}
       />
     </AppShell>
   );
