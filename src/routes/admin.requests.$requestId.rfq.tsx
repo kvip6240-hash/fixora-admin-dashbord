@@ -76,17 +76,6 @@ function Field({
   );
 }
 
-function getVisitingScheduleState(
-  schedule: { visitingDate?: string | null; visitingTime?: string | null; description?: string | null; submittedAt?: string | null } | null | undefined,
-  responseStatus?: string | null,
-) {
-  const submitted = Boolean(schedule && (schedule.visitingDate || schedule.visitingTime || schedule.description || schedule.submittedAt));
-  return {
-    submitted,
-    status: responseStatus || (submitted ? "Submitted" : "Awaiting Requester Response"),
-  };
-}
-
 function RfqDetailsPage() {
   const { requestId } = Route.useParams();
   const navigate = useNavigate();
@@ -135,13 +124,6 @@ function RfqDetailsPage() {
   const project = rfq.projectRequestId;
   const requester = rfq.requesterId;
   const providerName = project?.assignedProvider?.companyName || project?.assignedProvider?.name;
-  const visitingSchedule = rfq.requesterVisitingSchedule;
-  const scheduleRequestStatus = String(rfq.visitingScheduleRequestStatus ?? rfq.scheduleRequestStatus ?? "");
-  const scheduleRequestSentAt = (rfq.visitingScheduleRequestedAt ?? rfq.visitingScheduleRequestSentAt ?? rfq.scheduleRequestSentAt) as string | null | undefined;
-  const visitingScheduleState = getVisitingScheduleState(
-    visitingSchedule,
-    rfq.visitingScheduleResponseStatus,
-  );
   const download = async (format: RfqDownloadFormat) => {
     setDownloading(format);
     try {
@@ -261,32 +243,6 @@ function RfqDetailsPage() {
             <Field label="Project Title" value={project?.title} />
             <Field label="Description" value={project?.description} />
           </div>
-        </Card>
-
-        <Card className="border-teal-100 p-6">
-          <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <CalendarDays className="h-5 w-5 text-teal-700" />
-            Requester Visiting Schedule
-          </h2>
-          <div className="mb-4 grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-2">
-            <Field label="Schedule Request Status" value={scheduleRequestStatus || (scheduleRequestSentAt ? "Sent" : "Not sent")} />
-            <Field label="Schedule Request Sent At" value={formatDateTime(scheduleRequestSentAt)} />
-          </div>
-          {!visitingScheduleState.submitted ? (
-            <p className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800">
-              {visitingScheduleState.status}. The requester has not submitted a visiting schedule yet.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label="Visiting Date" value={visitingSchedule?.visitingDate} />
-              <Field label="Visiting Time" value={visitingSchedule?.visitingTime} />
-              <Field label="Response Status" value={visitingScheduleState.status} />
-              <Field label="Submitted At" value={formatDateTime(visitingSchedule?.submittedAt)} />
-              <div className="sm:col-span-2 lg:col-span-4">
-                <Field label="Description" value={visitingSchedule?.description} />
-              </div>
-            </div>
-          )}
         </Card>
 
         <Card className="p-6">

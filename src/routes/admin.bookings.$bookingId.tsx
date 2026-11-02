@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell, Button, Card, SectionHeader } from "@/components/app-shell";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchBookingDetails, updateBookingDetails, prepareProjectQuotation, publishProjectJob, getAttachmentUrl, type PrepareQuotationPayload } from "@/lib/api";
+import { fetchBookingDetails, fetchProjectRequestById, updateBookingDetails, prepareProjectQuotation, publishProjectJob, getAttachmentUrl, type PrepareQuotationPayload } from "@/lib/api";
 import { AttachmentItem } from "@/components/dashboard/AttachmentItem";
 import { VisitingScheduleRequestDialog } from "@/components/dashboard/VisitingScheduleRequestDialog";
 import { SubmittedVisitingScheduleDialog } from "@/components/dashboard/SubmittedVisitingScheduleDialog";
@@ -36,10 +36,10 @@ export const Route = createFileRoute("/admin/bookings/$bookingId")({
 
 // ─── Helpers to extract data safely ───────────────────────────────────────────
 
-function getRequesterDetails(booking: any) {
+function getRequesterDetails(booking: any, projectRequesterName?: string | null) {
   const req = booking?.requesterId || {};
   return {
-    name: req.name || req.fullName || booking?.requesterName || "—",
+    name: req.name || req.fullName || req.contactPersonName || booking?.requesterName || booking?.location?.contactName || projectRequesterName || req.companyName || "—",
     email: req.email || booking?.requesterEmail || "—",
     phone: req.phone || booking?.requesterPhone || "—",
   };
@@ -455,6 +455,12 @@ function BookingDetailsPage() {
     queryFn: () => fetchBookingDetails(bookingId),
     enabled: !!bookingId,
   });
+  const { data: projectRequestData } = useQuery({
+    queryKey: ["project-request", bookingId],
+    queryFn: () => fetchProjectRequestById(bookingId),
+    enabled: !!bookingId,
+    retry: false,
+  });
 
   const updateStatusMutation = useMutation({
     mutationFn: (newStatus: string) => updateBookingDetails(bookingId, { status: newStatus }),
@@ -503,7 +509,8 @@ function BookingDetailsPage() {
     );
   }
 
-  const requester = getRequesterDetails(booking);
+  const projectRequesterName = (projectRequestData as { data?: { requesterName?: string | null } } | undefined)?.data?.requesterName;
+  const requester = getRequesterDetails(booking, projectRequesterName);
   const company = getCompanyDetails(booking);
   const location = getLocationDetails(booking);
   const schedule = getScheduleDetails(booking);
